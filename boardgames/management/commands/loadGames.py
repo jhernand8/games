@@ -32,7 +32,29 @@ class Command(BaseCommand):
 
           gameUrl = nameA['href'];
           print(str(rank) + ": " + name + ": " + gameUrl);
+
+          # extract bgg id
+          bggId = gameUrl[11:]
+          bggId = bggId[0:bggId.find("/")]
+          self.loadGameData(bggId)
         time.sleep(3)
       except Exception as e:
         print(str(e) + "\n");
         continue;
+
+
+  # Method to use the xml api to load more data about a game - given its BGG id
+  def loadGameData(self, bggId):
+    #https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&id=144733&stats=1
+    url = 'https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&id=' + str(bggId) + '&stats=1'
+    htmlResp = urlopen(url)
+    xml = BeautifulSoup(htmlResp.read(), 'xml')
+
+    # weight
+    weight = xml.find("averageweight")['value']
+    # rating
+    overallRating = xml.find("average")['value']
+    # how many ratings
+    numRatings = xml.find("usersrated")['value']
+
+    print("   " + str(weight) + ": " + str(overallRating) + ":" + str(numRatings))
