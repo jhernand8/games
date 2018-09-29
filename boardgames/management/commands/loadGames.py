@@ -18,18 +18,21 @@ class Command(BaseCommand):
       try:
         table = html.find("table", id="collectionitems")
         rows = table.findAll("tr")
+
+        # go thru each row in the table - each row representing a different game
         for currRow in rows:
           tdElems = currRow.find_all("td", attrs={"class": "collection_rank"});
           if len(tdElems) < 1:
             continue;
-          rank = tdElems[0];
-          print("rank" + rank.prettify() + "\n");
           nameTd = currRow.find_all("td", attrs={"class": "collection_objectname"})[0]; 
-          name = nameTd.find("a").contents[0]
-          print("name" + name + "\n");
-          print("found: " + rank + ": " + name);
-          print("found: " + str(len(rank.contents)) + ": " + name);
-          time.sleep(3)
+          nameA = nameTd.find("a");
+          name = nameA.contents[0]
+          
+          rank = str(tdElems[0].text.strip());
+
+          gameUrl = nameA['href'];
+          print(str(rank) + ": " + name + ": " + gameUrl);
+        time.sleep(3)
       except Exception as e:
         print(str(e) + "\n");
         continue;
