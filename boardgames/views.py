@@ -1,4 +1,30 @@
+from django.shortcuts import render
+from django.shortcuts import redirect
+from django.http import HttpResponse
 from django import http
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils.safestring import mark_safe
+import json
+from json import JSONEncoder
+from boardgames.models import Boardgame
 
 def home(request):
-  return http.HttpResponse('Boardgames home');
+
+  allGames = Boardgame.objects.all()
+
+  gameJSONs = []
+  for currGame in allGames:
+    gameJSON = {}
+    gameJSON["name"] = currGame.name
+    gameJSON["rating"] = currGame.rating
+    gameJSON["ranking"] = currGame.ranking
+    gameJSON["minNumPlayers"] = currGame.minNumPlayers
+    gameJSON["maxNumPlayers"] = currGame.maxNumPlayers
+    gameJSON["playTime"] = currGame.playTime
+    gameJSON["complexity"] = currGame.complexityWeight
+    gameJSON["bggId"] = currGame.bggId
+    gameJSON["bggUrl"] = currGame.bggUrl
+    gameJSON["numRatings"] = currGame.numRatings
+
+    gameJSONs.append(gameJSON)
+  return render(request, 'home.html', {'allGames': mark_safe(json.dumps(gameJSONs, cls=DjangoJSONEncoder))})

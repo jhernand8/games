@@ -1,0 +1,32 @@
+<html>
+<head>
+  <style>
+  </style>
+  <script src="https://fb.me/react-0.13.0.js"></script>
+  <script src="https://fb.me/JSXTransformer-0.13.0.js"></script>
+<script type="text/jsx">
+/** @jsx React.DOM */
+var allGames = {{ allGames}};
+
+var SingleGame = React.createClass({
+  render: function() {
+    return <tr>
+
+      </tr>;
+  }
+});
+
+var Home = React.createClass({
+  render: function() {
+    return <span>Home</span>;
+  }
+});
+React.render(
+  <Home games={allGames} />, document.getElementById("allGames"));
+</script>
+</head>
+<body>
+<h1>Boardgames</h1>
+<div id="allGames"></div>
+</body>
+</html>

@@ -3,14 +3,15 @@ from django.core.serializers.json import DjangoJSONEncoder
 from urllib.request import urlopen
 import json
 import time
+from boardgames.models import Boardgame
 from bs4 import BeautifulSoup
 
 # Command to fetch game list from boardgame geek
 class Command(BaseCommand):
   def handle(self, *args, **options):
-
+    maxNumPages = 11;
     baseUrl = "https://www.boardgamegeek.com/browse/boardgame/page/"
-    for i in range(1, 11):
+    for i in range(1, maxNumPages):
       url = baseUrl + str(i)
       print("url: " + url);
       resp = urlopen(url)
@@ -31,12 +32,16 @@ class Command(BaseCommand):
           rank = str(tdElems[0].text.strip());
 
           gameUrl = nameA['href'];
-          print(str(rank) + ": " + name + ": " + gameUrl);
 
           # extract bgg id
           bggId = gameUrl[11:]
           bggId = bggId[0:bggId.find("/")]
-          self.loadGameData(bggId)
+          data = self.loadGameData(bggId)
+          print("   " + str(data[0]) + ": " + str(data[1]) + ":" + str(data[2]) + ":: " + str(rank) + ": " + name + ": " + gameUrl);
+
+          game = Boardgame(name = name, ranking = int(rank), bggId = int(bggId), bggUrl = gameUrl, numRatings = int(data[2]), rating = float(data[1]), complexityWeight = float(data[0]), minNumPlayers = 2, maxNumPlayers = 5, playTime = 60)
+          game.save()
+          time.sleep(3);
         time.sleep(3)
       except Exception as e:
         print(str(e) + "\n");
@@ -57,4 +62,4 @@ class Command(BaseCommand):
     # how many ratings
     numRatings = xml.find("usersrated")['value']
 
-    print("   " + str(weight) + ": " + str(overallRating) + ":" + str(numRatings))
+    return [weight, overallRating, numRatings]
