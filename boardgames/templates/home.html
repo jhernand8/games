@@ -1,6 +1,16 @@
 <html>
 <head>
   <style>
+   table {
+     border: 1px solid black;
+     border-collapse: collapse;
+   }
+   td, th {
+     border: 1px solid black;
+     border-collapse: collapse;
+     padding-left: 10px;
+     padding-right: 10px;
+   }
   </style>
   <script src="https://fb.me/react-0.13.0.js"></script>
   <script src="https://fb.me/JSXTransformer-0.13.0.js"></script>
@@ -8,12 +18,18 @@
 /** @jsx React.DOM */
 var allGames = {{ allGames}};
 
+var RANK_SORT = function(a, b) { return a.ranking - b.ranking;};
+var RATING_SORT = function(a, b) { return b.rating - a.rating;};
+var NUM_RATINGS_SORT = function(a, b) { return b.numRatings - a.numRatings;};
+var COMPLEXITY_SORT = function(a, b) { return a.complexity - b.complexity;};
 var SingleGame = React.createClass({
   render: function() {
+    var url = "https://www.boardgamegeek.com" + this.props.game.bggUrl;
+    var aHref = <a href={url}>{this.props.game.name}</a>;
     return <tr>
 
         <td>{this.props.game.ranking}</td>
-        <td>{this.props.game.name}</td>
+        <td>{aHref}</td>
         <td>{this.props.game.rating}</td>
         <td>{this.props.game.complexity}</td>
         <td></td>
@@ -24,12 +40,16 @@ var SingleGame = React.createClass({
 });
 
 var Home = React.createClass({
+  getInitialState: function() {
+    return { sortFn: RANK_SORT };
+  },
   render: function() {
-
       var gameRows = [];
-      for (var i = 0; i < this.props.allGames.length; i++) {
+      var sortedGames = this.props.allGames;
+      sortedGames.sort(this.state.sortFn);
+      for (var i = 0; i < sortedGames.length; i++) {
 
-        var game = <SingleGame game={this.props.allGames[i]}/>
+        var game = <SingleGame game={sortedGames[i]}/>
         gameRows.push(game);
       }
       return <table id="gamesTable">
