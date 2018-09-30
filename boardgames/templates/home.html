@@ -12,17 +12,42 @@ var SingleGame = React.createClass({
   render: function() {
     return <tr>
 
+        <td>{this.props.game.ranking}</td>
+        <td>{this.props.game.name}</td>
+        <td>{this.props.game.rating}</td>
+        <td>{this.props.game.complexity}</td>
+        <td></td>
+        <td>{this.props.game.numRatings}</td>
+        <td></td>
       </tr>;
   }
 });
 
 var Home = React.createClass({
   render: function() {
-    return <span>Home</span>;
+
+      var gameRows = [];
+      for (var i = 0; i < this.props.allGames.length; i++) {
+
+        var game = <SingleGame game={this.props.allGames[i]}/>
+        gameRows.push(game);
+      }
+      return <table id="gamesTable">
+        <tr id="gamesHeaderRow">
+          <th>Ranking</th>
+          <th>Name</th>
+          <th>Rating</th>
+          <th>Complexity</th>
+          <th>Play Time</th>
+          <th># Ratings</th>
+          <th># Players</th>
+        </tr>
+       { gameRows}
+      </table>;
   }
 });
 React.render(
-  <Home games={allGames} />, document.getElementById("allGames"));
+  <Home allGames={allGames} />, document.getElementById("allGames"));
 </script>
 </head>
 <body>
