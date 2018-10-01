@@ -54,16 +54,23 @@ var Home = React.createClass({
       }
       return <table id="gamesTable">
         <tr id="gamesHeaderRow">
-          <th>Ranking</th>
+          <th onClick={this.formChangeSortFn(RANK_SORT)} >Ranking</th>
           <th>Name</th>
-          <th>Rating</th>
-          <th>Complexity</th>
+          <th onClick={this.formChangeSortFn(RATING_SORT)}>Rating</th>
+          <th onClick={this.formChangeSortFn(COMPLEXITY_SORT)} >Complexity</th>
           <th>Play Time</th>
-          <th># Ratings</th>
+          <th onClick={this.formChangeSortFn(NUM_RATINGS_SORT)} ># Ratings</th>
           <th># Players</th>
         </tr>
        { gameRows}
       </table>;
+  },
+
+  formChangeSortFn: function(sortFn) {
+    var self = this;
+    return function(e) {
+      self.setState({sortFn: sortFn});
+    };
   }
 });
 React.render(
