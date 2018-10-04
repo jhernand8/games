@@ -9,8 +9,10 @@ from bs4 import BeautifulSoup
 # Command to fetch game list from boardgame geek
 class Command(BaseCommand):
   def handle(self, *args, **options):
-    maxNumPages = 11;
+    maxNumPages = 20;
     baseUrl = "https://www.boardgamegeek.com/browse/boardgame/page/"
+    allGames = Boardgame.objects.all();
+
     for i in range(1, maxNumPages):
       url = baseUrl + str(i)
       print("url: " + url);
@@ -36,10 +38,16 @@ class Command(BaseCommand):
           # extract bgg id
           bggId = gameUrl[11:]
           bggId = bggId[0:bggId.find("/")]
-          data = self.loadGameData(bggId)
-          print("   " + str(data[0]) + ": " + str(data[1]) + ":" + str(data[2]) + ":: " + str(rank) + ": " + name + ": " + gameUrl);
 
-          game = Boardgame(name = name, ranking = int(rank), bggId = int(bggId), bggUrl = gameUrl, numRatings = int(data[2]), rating = float(data[1]), complexityWeight = float(data[0]), minNumPlayers = 2, maxNumPlayers = 5, playTime = 60)
+          # skip over if this game already exists in the database
+          if self.existsGameWithBGGId(int(bggId), allGames):
+            continue
+          game = Boardgame(name = name, ranking = int(rank), bggId = int(bggId), bggUrl = gameUrl); 
+          #, numRatings = int(data[2]), rating = float(data[1]), complexityWeight = float(data[0]), minNumPlayers = 2, maxNumPlayers = 5, playTime = 60)
+
+          game = self.loadGameData(bggId, game)
+          print("   " + str(rank) + ": " + name + ": " + gameUrl);
+
           game.save()
           time.sleep(3);
         time.sleep(3)
@@ -48,8 +56,16 @@ class Command(BaseCommand):
         continue;
 
 
+  # Method returns true if there is a boardgame entry in the list
+  # with the given bggId, false otherwise.
+  def existsGameWithBGGId(self, bggId, games):
+    for game in games:
+      if game.bggId == bggId:
+        return True
+    return False
+
   # Method to use the xml api to load more data about a game - given its BGG id
-  def loadGameData(self, bggId):
+  def loadGameData(self, bggId, game):
     #https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&id=144733&stats=1
     url = 'https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&id=' + str(bggId) + '&stats=1'
     htmlResp = urlopen(url)
@@ -62,4 +78,10 @@ class Command(BaseCommand):
     # how many ratings
     numRatings = xml.find("usersrated")['value']
 
-    return [weight, overallRating, numRatings]
+    game.complexityWeight = float(weight)
+    game.rating = float(overallRating)
+    game.numRatings = int(numRatings)
+    game.playTime = int(xml.find("playingtime")['value'])
+    game.minNumPlayers = int(xml.find("minplayers")['value'])
+    game.maxNumPlayers = int(xml.find("maxplayers")['value'])
+    return game
