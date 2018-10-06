@@ -46,14 +46,18 @@ var Home = React.createClass({
   },
   render: function() {
       var gameRows = [];
-      var sortedGames = this.props.allGames;
+      var filteredGames = this.filterGames(this.props.allGames);
+      var sortedGames = filteredGames;
       sortedGames.sort(this.state.sortFn);
       for (var i = 0; i < sortedGames.length; i++) {
 
-        var game = <SingleGame game={sortedGames[i]}/>
+        var game = <SingleGame game={sortedGames[i]} key={sortedGames[i].bggId}/>
         gameRows.push(game);
       }
-      return <table id="gamesTable">
+
+      var search = <div id="search">Search <input type="text" onKeyUp={this.searchKeyUp}/></div>
+      return <div id="homeDiv">{search}<br/><br/>
+        <table id="gamesTable"><tbody>
         <tr id="gamesHeaderRow">
           <th onClick={this.formChangeSortFn(RANK_SORT)} >Ranking</th>
           <th>Name</th>
@@ -64,7 +68,9 @@ var Home = React.createClass({
           <th># Players</th>
         </tr>
        { gameRows}
-      </table>;
+       </tbody>
+      </table>
+      </div>;
   },
 
   formChangeSortFn: function(sortFn) {
@@ -72,7 +78,36 @@ var Home = React.createClass({
     return function(e) {
       self.setState({sortFn: sortFn});
     };
-  }
+  },
+
+  // Filters out games that don't meet certain criteria (stored in state) and
+  // returns array of games that do match all the criteria.
+  filterGames: function(games) {
+    var filtered = [];
+    for (var i = 0; i < games.length; i++) {
+      if (this.matchesFilters(games[i])) {
+        filtered.push(games[i]);
+      }
+    }
+    return filtered;
+  },
+
+  // Returns true if the game matches all current filters, false otherwise.
+  matchesFilters: function(game) {
+    if (this.state.searchKeyword) {
+      if (game.name.toLowerCase().includes(this.state.searchKeyword)) {
+        return true;
+      }
+      return false;
+    }
+    return true;
+
+  },
+
+  // Handler for input in the search text field.
+  searchKeyUp: function(e) {
+    this.setState({searchKeyword: e.target.value});
+  },
 });
 React.render(
   <Home allGames={allGames} />, document.getElementById("allGames"));
