@@ -45,7 +45,8 @@ var SingleGame = React.createClass({
 
 var Home = React.createClass({
   getInitialState: function() {
-    return { sortFn: RANK_SORT };
+    return { sortFn: RANK_SORT,
+             numPlayersFilterNum: 0 };
   },
   render: function() {
       var gameRows = [];
@@ -59,7 +60,7 @@ var Home = React.createClass({
       }
 
       var search = <div id="search">Search <input type="text" onKeyUp={this.searchKeyUp}/></div>
-      return <div id="homeDiv">{search}<br/><br/>
+      return <div id="homeDiv">{search}<br/>{this.formNumPlayersFilter()}<br/><br/>
         <table id="gamesTable"><tbody>
         <tr id="gamesHeaderRow">
           <th onClick={this.formChangeSortFn(RANK_SORT)} >Ranking</th>
@@ -76,11 +77,34 @@ var Home = React.createClass({
       </div>;
   },
 
+  // Forms the num players filter
+  formNumPlayersFilter: function() {
+    var options = [];
+    for (var i = 0; i <= 12; i++) {
+      var showVal = i == 0 ? "" : (i + "");
+      var opt = <option value={i}>{showVal}</option>;
+      options.push(opt);
+    }
+    return <div id="numPlayersFilter">
+        Num Players:
+        <select id="numPlayersSelect" onChange={this.handleNumPlayersFilterChange}>{options} </select>
+      </div>;
+  },
+
   formChangeSortFn: function(sortFn) {
     var self = this;
     return function(e) {
       self.setState({sortFn: sortFn});
     };
+  },
+
+  // Handle change num players filter - updates state.
+  handleNumPlayersFilterChange: function(e) {
+    var val = e.target.value;
+    if (!val) {
+      val = 0;
+    }
+    this.setState({ numPlayersFilterNum: val});
   },
 
   // Filters out games that don't meet certain criteria (stored in state) and
@@ -98,11 +122,21 @@ var Home = React.createClass({
   // Returns true if the game matches all current filters, false otherwise.
   matchesFilters: function(game) {
     if (this.state.searchKeyword) {
-      if (game.name.toLowerCase().includes(this.state.searchKeyword)) {
-        return true;
+      // if does not contain keyword, immediately return
+      if (!game.name.toLowerCase().includes(this.state.searchKeyword.toLowerCase())) {
+        return false;
       }
-      return false;
     }
+
+    if (this.state.numPlayersFilterNum > 0) {
+      var matchesPlayers =
+        game.minNumPlayers <= this.state.numPlayersFilterNum
+        && this.state.numPlayersFilterNum <= game.maxNumPlayers;
+      if (!matchesPlayers) {
+        return false;
+      }
+    }
+    
     return true;
 
   },
