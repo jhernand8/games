@@ -56,12 +56,30 @@ var RecordPlay = React.createClass({
       var currDate = new Date(today);
       currDate.setDate(currDate.getDate() + i);
       var dateStr = (currDate.getMonth() + 1) + "/" + currDate.getDate() + "/" + currDate.getFullYear();
-      var opt = <option value="dateStr">{dateStr}</option>;
+      var opt = <option value={dateStr}>{dateStr}</option>;
       dates.push(opt);
     }
-    var sel = <select id={"selDate" + this.props.gameId}>{dates}</select>;
-    return sel;
+    var sel = <select onChange={this.handleDateChange}>{dates}</select>;
 
+    var sendBtn = <button className="sendBtn" onClick={this.handleSendClick}>Save</button>;
+    return <span className="dateOptSpan">{sel}{sendBtn}</span>;
+
+  },
+
+  // Handles change of select option.
+  handleDateChange: function(e) {
+    this.setState({ dateSelected: e.target.value});
+  },
+  // Sends the play date to the backend to be saved.
+  handleSendClick: function(e) {
+    var self = this;
+    fetch("/savePlay", {
+        method: 'POST',
+        headers: { 
+        },
+        body: JSON.stringify({gameId: self.props.gameId, date: self.state.dateSelected}) 
+      })
+    .then(res => console.log(res));
   }
 
 });
