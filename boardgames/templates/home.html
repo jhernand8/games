@@ -39,8 +39,31 @@ var SingleGame = React.createClass({
         <td>{this.props.game.playTime} mins</td>
         <td>{this.props.game.numRatings}</td>
         <td>{this.props.game.minNumPlayers} - {this.props.game.maxNumPlayers}</td>
+        <td></td>
+        <td></td>
+        <td><RecordPlay gameId={this.props.game.bggId} offset="0"/></td>
       </tr>;
   }
+});
+
+var RecordPlay = React.createClass({
+
+  render: function() {
+    var dates = [];
+
+    var today = new Date();
+    for (var i = 0; i >= -30; i--) {
+      var currDate = new Date(today);
+      currDate.setDate(currDate.getDate() + i);
+      var dateStr = (currDate.getMonth() + 1) + "/" + currDate.getDate() + "/" + currDate.getFullYear();
+      var opt = <option value="dateStr">{dateStr}</option>;
+      dates.push(opt);
+    }
+    var sel = <select id={"selDate" + this.props.gameId}>{dates}</select>;
+    return sel;
+
+  }
+
 });
 
 var Home = React.createClass({
@@ -70,6 +93,9 @@ var Home = React.createClass({
           <th onClick={this.formChangeSortFn(PLAYTIME_SORT)}>Play Time</th>
           <th onClick={this.formChangeSortFn(NUM_RATINGS_SORT)} ># Ratings</th>
           <th># Players</th>
+          <th>Last played</th>
+          <th># Plays</th>
+          <th></th>
         </tr>
        { gameRows}
        </tbody>
