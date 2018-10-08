@@ -28,3 +28,7 @@ def home(request):
 
     gameJSONs.append(gameJSON)
   return render(request, 'home.html', {'allGames': mark_safe(json.dumps(gameJSONs, cls=DjangoJSONEncoder))})
+
+def addGamePlay(request):
+  # request.POST.getlist('aaa')
+  return HttpResponse("Success");

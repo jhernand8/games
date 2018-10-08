@@ -12,3 +12,10 @@ class Boardgame(models.Model):
   bggId = models.IntegerField(unique = True, primary_key = True)
   bggUrl = models.TextField()
   numRatings = models.IntegerField()
+
+
+# Represents a particular time I played a boardgame.
+class GamePlay(models.Model):
+  bggId = models.IntegerField()
+  date = models.DateField()
+  
