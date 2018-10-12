@@ -13,6 +13,7 @@ from boardgames.models import GamePlay
 def home(request):
 
   allGames = Boardgame.objects.all()
+  allPlays = GamePlay.objects.all()
 
   gameJSONs = []
   for currGame in allGames:
@@ -28,9 +29,12 @@ def home(request):
     gameJSON["bggUrl"] = currGame.bggUrl
     gameJSON["numRatings"] = currGame.numRatings
 
+    plays = filter_plays_for_game(allPlays, currGame.bggId)
+    gameJSON["numPlays"] = len(plays)
     gameJSONs.append(gameJSON)
   return render(request, 'home.html', {'allGames': mark_safe(json.dumps(gameJSONs, cls=DjangoJSONEncoder))})
 
+# Handler for adding a play of a particular game.
 def addGamePlay(request):
   # request.POST.getlist('aaa')
   data = json.loads(request.body);
@@ -40,3 +44,11 @@ def addGamePlay(request):
   play = GamePlay(bggId = id, date = playDate);
   play.save();
   return HttpResponse("Success");
+
+def filter_plays_for_game(allPlays, id):
+  plays = []
+  for play in allPlays:
+    if play.bggId == id:
+      plays.append(play)
+
+  return plays
