@@ -5,8 +5,10 @@ from django import http
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.safestring import mark_safe
 import json
+import datetime
 from json import JSONEncoder
 from boardgames.models import Boardgame
+from boardgames.models import GamePlay
 
 def home(request):
 
@@ -31,4 +33,10 @@ def home(request):
 
 def addGamePlay(request):
   # request.POST.getlist('aaa')
+  data = json.loads(request.body);
+  id = int(data["gameId"]);
+  dateStr = str(data["date"]);
+  playDate = datetime.datetime.strptime(dateStr, "%m/%d/%Y"); 
+  play = GamePlay(bggId = id, date = playDate);
+  play.save();
   return HttpResponse("Success");
