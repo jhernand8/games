@@ -41,7 +41,7 @@ var SingleGame = React.createClass({
         <td>{this.props.game.minNumPlayers} - {this.props.game.maxNumPlayers}</td>
         <td></td>
         <td></td>
-        <td><RecordPlay gameId={this.props.game.bggId} offset="0"/></td>
+        <td><RecordPlay gameId={this.props.game.bggId} offset="0" csrf={this.props.csrf}/></td>
       </tr>;
   }
 });
@@ -73,9 +73,10 @@ var RecordPlay = React.createClass({
   // Sends the play date to the backend to be saved.
   handleSendClick: function(e) {
     var self = this;
-    fetch("/savePlay", {
+    var url = "/savePlay?csrfmiddlewaretoken=" + this.props.csrf;
+    fetch(url, {
         method: 'POST',
-        headers: { 
+        headers: { 'X-CSRFToken': this.props.csrf
         },
         body: JSON.stringify({gameId: self.props.gameId, date: self.state.dateSelected}) 
       })
@@ -96,7 +97,7 @@ var Home = React.createClass({
       sortedGames.sort(this.state.sortFn);
       for (var i = 0; i < sortedGames.length; i++) {
 
-        var game = <SingleGame game={sortedGames[i]} key={sortedGames[i].bggId}/>
+        var game = <SingleGame game={sortedGames[i]} key={sortedGames[i].bggId} csrf={this.props.csrf}/>
         gameRows.push(game);
       }
 
@@ -191,10 +192,11 @@ var Home = React.createClass({
   },
 });
 React.render(
-  <Home allGames={allGames} />, document.getElementById("allGames"));
+  <Home allGames={allGames} csrf={document.getElementsByName("csrfmiddlewaretoken")[0].value}/>, document.getElementById("allGames"));
 </script>
 </head>
 <body>
+{% csrf_token %} 
 <h1>Boardgames</h1>
 <div id="allGames"></div>
 <br/><br/><span>Data from www.boardgamegeek.com</span>
