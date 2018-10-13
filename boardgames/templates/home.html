@@ -30,6 +30,7 @@ var SingleGame = React.createClass({
   render: function() {
     var url = "https://www.boardgamegeek.com" + this.props.game.bggUrl;
     var aHref = <a href={url}>{this.props.game.name}</a>;
+    var numPlays = this.props.game.numPlays == 0 ? "" : this.props.game.numPlays;
     return <tr>
 
         <td>{this.props.game.ranking}</td>
@@ -40,7 +41,7 @@ var SingleGame = React.createClass({
         <td>{this.props.game.numRatings}</td>
         <td>{this.props.game.minNumPlayers} - {this.props.game.maxNumPlayers}</td>
         <td></td>
-        <td>{this.props.game.numPlays}</td>
+        <td>{numPlays}</td>
         <td><RecordPlay gameId={this.props.game.bggId} offset="0" csrf={this.props.csrf}/></td>
       </tr>;
   }
