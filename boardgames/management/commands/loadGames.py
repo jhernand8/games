@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 # Command to fetch game list from boardgame geek
 class Command(BaseCommand):
   def handle(self, *args, **options):
-    maxNumPages = 20;
+    maxNumPages = 40;
     baseUrl = "https://www.boardgamegeek.com/browse/boardgame/page/"
     allGames = Boardgame.objects.all();
 
