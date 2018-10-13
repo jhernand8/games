@@ -30,7 +30,15 @@ def home(request):
     gameJSON["numRatings"] = currGame.numRatings
 
     plays = filter_plays_for_game(allPlays, currGame.bggId)
+
+    # sort plays by date
+    plays = sorted(plays, key=lambda gp: gp.date.toordinal(), reverse=True);
     gameJSON["numPlays"] = len(plays)
+
+    if len(plays) > 0:
+      gameJSON["lastPlayed"] = plays[0].date.isoformat()
+    if len(plays) > 1:
+      gameJSON["firstPlayed"] = plays[-1].date.isoformat()
     gameJSONs.append(gameJSON)
   return render(request, 'home.html', {'allGames': mark_safe(json.dumps(gameJSONs, cls=DjangoJSONEncoder))})
 
@@ -45,6 +53,9 @@ def addGamePlay(request):
   play.save();
   return HttpResponse("Success");
 
+
+
+# Returns list of plays for game with the given bggId.
 def filter_plays_for_game(allPlays, id):
   plays = []
   for play in allPlays:
