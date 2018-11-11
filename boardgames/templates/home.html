@@ -26,6 +26,7 @@ var RATING_SORT = function(a, b) { return b.rating - a.rating;};
 var NUM_RATINGS_SORT = function(a, b) { return b.numRatings - a.numRatings;};
 var COMPLEXITY_SORT = function(a, b) { return a.complexity - b.complexity;};
 var PLAYTIME_SORT = function(a, b) { return a.playTime - b.playTime;};
+var NUM_PLAYS_SORT = function(a, b) { return b.numPlays - a.numPlays;};
 var SingleGame = React.createClass({
   render: function() {
     var url = "https://www.boardgamegeek.com" + this.props.game.bggUrl;
@@ -114,7 +115,7 @@ var Home = React.createClass({
           <th onClick={this.formChangeSortFn(NUM_RATINGS_SORT)} ># Ratings</th>
           <th># Players</th>
           <th>Last played</th>
-          <th># Plays</th>
+          <th onClick={this.formChangeSortFn(NUM_PLAYS_SORT)}># Plays</th>
           <th></th>
         </tr>
        { gameRows}
