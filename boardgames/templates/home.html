@@ -11,8 +11,8 @@
      padding-left: 10px;
      padding-right: 10px;
    }
-   #https://stackoverflow.com/questions/27525228/react-click-events-not-firing-on-mobile
-   th {
+   // https://stackoverflow.com/questions/27525228/react-click-events-not-firing-on-mobile
+   table tr#gamesHeaderRow th {
      cursor: pointer;
    }
    #search, #search input {
@@ -32,7 +32,17 @@ var NUM_RATINGS_SORT = function(a, b) { return b.numRatings - a.numRatings;};
 var COMPLEXITY_SORT = function(a, b) { return a.complexity - b.complexity;};
 var PLAYTIME_SORT = function(a, b) { return a.playTime - b.playTime;};
 var NUM_PLAYS_SORT = function(a, b) { return b.numPlays - a.numPlays;};
-var LAST_PLAYED_SORT = function(a, b) { return b.lastPlayed - a.lastPlayed;};
+var LAST_PLAYED_SORT = function(a, b) { 
+  if (a == null || a == undefined) {
+    if (b != null && b != undefined) {
+      return 1;
+    }
+    if (b == null || b == undefined) {
+      return 0;
+    }
+  }
+  return b.lastPlayed - a.lastPlayed;
+};
 var SingleGame = React.createClass({
   render: function() {
     var url = "https://www.boardgamegeek.com" + this.props.game.bggUrl;
