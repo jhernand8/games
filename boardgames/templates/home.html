@@ -177,8 +177,13 @@ var Home = React.createClass({
   // returns array of games that do match all the criteria.
   filterGames: function(games) {
     var filtered = [];
+    // do this here so don't have to call toLowerCase for every game
+    var keyword = this.state.searchKeyword;
+    if (keyword) {
+      keyword = keyword.toLowerCase();
+    }
     for (var i = 0; i < games.length; i++) {
-      if (this.matchesFilters(games[i])) {
+      if (this.matchesFilters(games[i], keyword)) {
         filtered.push(games[i]);
       }
     }
@@ -186,18 +191,19 @@ var Home = React.createClass({
   },
 
   // Returns true if the game matches all current filters, false otherwise.
-  matchesFilters: function(game) {
-    if (this.state.searchKeyword) {
+  matchesFilters: function(game, keyword) {
+    if (keyword && keyword.length > 1) {
       // if does not contain keyword, immediately return
-      if (!game.name.toLowerCase().includes(this.state.searchKeyword.toLowerCase())) {
+      if (!game.name.toLowerCase().includes(keyword)) {
         return false;
       }
     }
 
-    if (this.state.numPlayersFilterNum > 0) {
+    var numPlayersFilter = this.state.numPlayersFilterNum;
+    if (numPlayersFilter > 0) {
       var matchesPlayers =
-        game.minNumPlayers <= this.state.numPlayersFilterNum
-        && this.state.numPlayersFilterNum <= game.maxNumPlayers;
+        game.minNumPlayers <= numPlayersFilter
+        && numPlayersFilter <= game.maxNumPlayers;
       if (!matchesPlayers) {
         return false;
       }
