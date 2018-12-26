@@ -182,6 +182,9 @@ var Home = React.createClass({
     if (keyword) {
       keyword = keyword.toLowerCase();
     }
+    if ((!this.state.numPlayersFilterNum) && ((!keyword) || keyword.length == 1)) {
+      return games;
+    }
     for (var i = 0; i < games.length; i++) {
       if (this.matchesFilters(games[i], keyword)) {
         filtered.push(games[i]);
