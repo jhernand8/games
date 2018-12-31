@@ -200,7 +200,7 @@ var Home = React.createClass({
   matchesFilters: function(game, keyword, numPlayersFilter) {
     if (keyword && keyword.length > 1) {
       // if does not contain keyword, immediately return
-      if (!game.name.toLowerCase().includes(keyword)) {
+      if (!game.lowername.includes(keyword)) {
         return false;
       }
     }

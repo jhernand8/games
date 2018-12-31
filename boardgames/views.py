@@ -19,6 +19,7 @@ def home(request):
   for currGame in allGames:
     gameJSON = {}
     gameJSON["name"] = currGame.name
+    gameJSON["lowername"] = currGame.name.lower()
     gameJSON["rating"] = currGame.rating
     gameJSON["ranking"] = currGame.ranking
     gameJSON["minNumPlayers"] = currGame.minNumPlayers
