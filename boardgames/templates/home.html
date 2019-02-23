@@ -174,7 +174,8 @@ var Home = React.createClass({
     if (!val) {
       val = 0;
     }
-    this.setState({ numPlayersFilterNum: val, games: this.filterGames(this.props.allGames)});
+    this.setState({ numPlayersFilterNum: val,
+                    games: this.filterGames(this.props.allGames, this.state.searchKeyword, val)});
   },
 
   // Filters out games that don't meet certain criteria (stored in state) and
