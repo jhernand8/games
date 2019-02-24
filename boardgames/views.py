@@ -41,7 +41,25 @@ def home(request):
     if len(plays) > 1:
       gameJSON["firstPlayed"] = plays[-1].date.isoformat()
     gameJSONs.append(gameJSON)
-  return render(request, 'home.html', {'allGames': mark_safe(json.dumps(gameJSONs, cls=DjangoJSONEncoder))})
+
+  byDate = form_json_plays_by_day(allPlays)
+  return render(request, 'home.html', {'allGames': mark_safe(json.dumps(gameJSONs, cls=DjangoJSONEncoder)),
+                                       'byDate': mark_safe(json.dumps(byDate, cls=DjangoJSONEncoder))})
+
+
+# Returns a json object of all plays by day of week
+def form_json_plays_by_day(allPlays) :
+  byDate = {};
+  for i in range(0, 8) :
+    byDate[i] = [];
+  
+  for play in allPlays:
+    obj = {};
+    obj["date"] = play.date.isoformat()
+    obj["gameId"] = play.bggId
+    byDate[play.date.weekday()].append(obj)
+  return byDate;
+
 
 # Handler for adding a play of a particular game.
 def addGamePlay(request):
