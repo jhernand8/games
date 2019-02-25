@@ -18,6 +18,15 @@
    #search, #search input {
      font-size: 25px;
    }
+   #mondays, #fridays, #saturdays {
+     float: left;
+     padding: 20px;
+   }
+
+   #byDate {
+     height: 200px;
+     overflow: scroll;
+   }
   </style>
   <script src="https://fb.me/react-0.13.0.js"></script>
   <script src="https://fb.me/JSXTransformer-0.13.0.js"></script>
@@ -235,13 +244,53 @@ var Home = React.createClass({
     this.setState({searchKeyword: e.target.value, games: games});
   },
 });
+var ByDate = React.createClass({
+  render: function() {
+    var byDate = {};
+    for (var i = 0; i < 7; i += 1) {
+
+      var forDay = [];
+      var playObjArr = this.props.byDate[i];
+      var prevDate = new Date();
+      for (var j = 0; j < playObjArr.length; j += 1) {
+        var name = this.findGameName(playObjArr[j]["bggId"]);
+        var show = <span class="play">{playObjArr[j]["date"]} {name}</span>;
+        forDay.push(show);
+        forDay.push(<br/>);
+      }
+      byDate[i] = forDay;
+    }   
+    return  <div id="playsByDate">
+       <div id="mondays"><b>Monday</b><br/>{byDate[0]}</div>
+       <div id="fridays"><b>Friday</b><br/>{byDate[4]}</div>
+       <div id="saturdays"><b>Saturday</b><br/>{byDate[6]}</div>
+      </div>;
+
+  },
+
+  // returns the name of the game with the given id
+  findGameName: function(id) {
+    var name = "";
+    for (var i = 0; i < this.props.allGames.length; i += 1) {
+      if (id == this.props.allGames[i].bggId) {
+        return this.props.allGames[i].name;
+      }
+    }
+
+    return name;
+  }
+});
+
 React.render(
   <Home allGames={allGames} csrf={document.getElementsByName("csrfmiddlewaretoken")[0].value}/>, document.getElementById("allGames"));
+React.render(
+  <ByDate allGames={allGames} byDate={byDate}csrf={document.getElementsByName("csrfmiddlewaretoken")[0].value}/>, document.getElementById("byDate"));
 </script>
 </head>
 <body>
 {% csrf_token %} 
 <h1>Boardgames</h1>
+<div id="byDate"></div>
 <div id="allGames"></div>
 <br/><br/><span>Data from www.boardgamegeek.com</span>
 </body>
