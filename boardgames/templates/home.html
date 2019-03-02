@@ -252,14 +252,20 @@ var Home = React.createClass({
 var ByDate = React.createClass({
   render: function() {
     var byDate = {};
+    // for each day in the week
     for (var i = 0; i < 7; i += 1) {
 
       var forDay = [];
       var playObjArr = this.props.byDate[i];
+      // sort by date with most recent first
+      playObjArr = playObjArr.sort(function(a, b) {
+        return new Date(b["date"]) - new Date(a["date"]);
+      });
       var prevDateStr = "";
       for (var j = 0; j < playObjArr.length; j += 1) {
         var name = this.findGameName(playObjArr[j]["bggId"]);
         var dateStr = playObjArr[j]["date"];
+        // if same date as before, don't show date
         if (dateStr === prevDateStr) {
           dateStr = "";
         }
