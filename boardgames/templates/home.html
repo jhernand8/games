@@ -27,6 +27,11 @@
      height: 200px;
      overflow: scroll;
    }
+
+   #byDate span.play {
+     display: inline-block;
+     min-width: 80px;
+   }
   </style>
   <script src="https://fb.me/react-0.13.0.js"></script>
   <script src="https://fb.me/JSXTransformer-0.13.0.js"></script>
@@ -251,12 +256,21 @@ var ByDate = React.createClass({
 
       var forDay = [];
       var playObjArr = this.props.byDate[i];
-      var prevDate = new Date();
+      var prevDateStr = "";
       for (var j = 0; j < playObjArr.length; j += 1) {
         var name = this.findGameName(playObjArr[j]["bggId"]);
-        var show = <span class="play">{playObjArr[j]["date"]} {name}</span>;
+        var dateStr = playObjArr[j]["date"];
+        if (dateStr === prevDateStr) {
+          dateStr = "";
+        }
+        var show = 
+          <span>
+            <span className="play">{dateStr}</span>
+            <span className="gameName"> {name}</span>
+          </span>;
         forDay.push(show);
         forDay.push(<br/>);
+        prevDateStr = dateStr;
       }
       byDate[i] = forDay;
     }   
