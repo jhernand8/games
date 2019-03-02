@@ -276,7 +276,7 @@ var ByDate = React.createClass({
           </span>;
         forDay.push(show);
         forDay.push(<br/>);
-        prevDateStr = dateStr;
+        prevDateStr = playObjArr[j]["date"]; // can't use dateStr since may be empty from above
       }
       byDate[i] = forDay;
     }   
