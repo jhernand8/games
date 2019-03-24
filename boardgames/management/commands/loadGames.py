@@ -39,11 +39,12 @@ class Command(BaseCommand):
           bggId = gameUrl[11:]
           bggId = bggId[0:bggId.find("/")]
 
-          # skip over if this game already exists in the database
+          # see if it exists, and if so, we will update the game
           if self.existsGameWithBGGId(int(bggId), allGames):
-            continue
-          game = Boardgame(name = name, ranking = int(rank), bggId = int(bggId), bggUrl = gameUrl); 
-          #, numRatings = int(data[2]), rating = float(data[1]), complexityWeight = float(data[0]), minNumPlayers = 2, maxNumPlayers = 5, playTime = 60)
+            game = self.gameWithBGGId(int(bggId), allGames)
+            game.ranking = int(rank)
+          else:
+            game = Boardgame(name = name, ranking = int(rank), bggId = int(bggId), bggUrl = gameUrl); 
 
           game = self.loadGameData(bggId, game)
           print("   " + str(rank) + ": " + name + ": " + gameUrl);
@@ -63,6 +64,13 @@ class Command(BaseCommand):
       if game.bggId == bggId:
         return True
     return False
+  
+  # Returns the game with the given bggId.
+  def gameWithBGGId(self, bggId, games):
+    for game in games:
+      if game.bggId == bggId:
+        return game
+    return None
 
   # Method to use the xml api to load more data about a game - given its BGG id
   def loadGameData(self, bggId, game):
