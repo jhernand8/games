@@ -18,7 +18,7 @@
    #search, #search input {
      font-size: 25px;
    }
-   #mondays, #fridays, #saturdays {
+   #mondays, #fridays, #saturdays, #sundays, #tuesdays, #wednesdays, #thursdays {
      float: left;
      padding: 20px;
    }
@@ -372,6 +372,10 @@ var ByDate = React.createClass({
        <div id="mondays"><b>Monday</b><br/>{byDate[0]}</div>
        <div id="fridays"><b>Friday</b><br/>{byDate[4]}</div>
        <div id="saturdays"><b>Saturday</b><br/>{byDate[5]}</div>
+       <div id="sundays"><b>Sunday</b><br/>{byDate[6]}</div>
+       <div id="tuesdays"><b>Tuesday</b><br/>{byDate[1]}</div>
+       <div id="wednesdays"><b>Wednesday</b><br/>{byDate[2]}</div>
+       <div id="thursdays"><b>Thursday</b><br/>{byDate[3]}</div>
       </div>;
 
   },

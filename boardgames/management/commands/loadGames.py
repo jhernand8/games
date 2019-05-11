@@ -12,7 +12,7 @@ class Command(BaseCommand):
   def handle(self, *args, **options):
     # only run few times a month, not daily
     currDay = datetime.datetime.now().day
-    if currDay != 25 and currDay != 10:
+    if currDay != 25 and currDay != 10 and currDay != 14:
       return;
     maxNumPages = 40;
     baseUrl = "https://www.boardgamegeek.com/browse/boardgame/page/"
