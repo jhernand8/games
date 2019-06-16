@@ -335,6 +335,7 @@ var Home = React.createClass({
          this.state.minComplexity,
          this.state.maxComplexity);
     this.setState({searchKeyword: e.target.value, games: games});
+    this.props.onSearchChange(newKey);
   },
 });
 var ByDate = React.createClass({
@@ -352,6 +353,12 @@ var ByDate = React.createClass({
       var prevDateStr = "";
       for (var j = 0; j < playObjArr.length; j += 1) {
         var name = this.findGameName(playObjArr[j]["bggId"]);
+
+        if (this.props.searchStr) {
+          if (this.props.searchStr.length > 0 && !name.toLowerCase().contains(this.props.searchStr)) {
+            continue;
+          }
+        }
         var dateStr = playObjArr[j]["date"];
         // if same date as before, don't show date
         if (dateStr === prevDateStr) {
@@ -393,8 +400,36 @@ var ByDate = React.createClass({
   }
 });
 
+var HomeContainer = React.createClass({
+
+  getInitialState: function() {
+    return {searchStr: null};
+  },
+
+  render: function() {
+
+    return <div>
+      <div id="byDate">
+        <ByDate allGames={this.props.allGames} byDate={this.props.byDate} searchStr={this.state.searchStr} csrf={this.props.csrf}/>
+      </div>
+      <div id="allGames">
+        <Home allGames={this.props.allGames} onSearchChange={this.onSearchChange} csrf={this.props.csrf}/>
+      </div>
+    </div>
+  },
+
+  onSearchChange: function(keyword) {
+    if (keyword) {
+      keyword = keyword.toLowerCase();
+    }
+    this.setState({searchStr: keyword});
+  }
+
+});
+
+
 React.render(
-  <Home allGames={allGames} csrf={document.getElementsByName("csrfmiddlewaretoken")[0].value}/>, document.getElementById("allGames"));
+  <HomeContainer allGames={allGames} byDate={byDate} csrf={document.getElementsByName("csrfmiddlewaretoken")[0].value}/>, document.getElementById("home"));
 React.render(
   <ByDate allGames={allGames} byDate={byDate}csrf={document.getElementsByName("csrfmiddlewaretoken")[0].value}/>, document.getElementById("byDate"));
 </script>
@@ -402,8 +437,7 @@ React.render(
 <body>
 {% csrf_token %} 
 <h1>Boardgames</h1>
-<div id="byDate"></div>
-<div id="allGames"></div>
+<div id="home"></div>
 <br/><br/><span>Data from www.boardgamegeek.com</span>
 </body>
 </html>
