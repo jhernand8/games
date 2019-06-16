@@ -365,12 +365,12 @@ var ByDate = React.createClass({
           dateStr = "";
         }
         var show = 
-          <span key={dateStr + "Plays"}>
+          <span key={dateStr + "" + j + "Plays"}>
             <span className="play" key={dateStr}>{dateStr}</span>
-            <span className="gameName" key={name}> {name}</span>
+            <span className="gameName" key={name + dateStr}> {name}</span>
           </span>;
         forDay.push(show);
-        forDay.push(<br key={"br" + dateStr}/>);
+        forDay.push(<br key={"br" + dateStr + " " + j}/>);
         prevDateStr = playObjArr[j]["date"]; // can't use dateStr since may be empty from above
       }
       byDate[i] = forDay;
