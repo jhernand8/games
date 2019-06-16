@@ -76,7 +76,7 @@ var SingleGame = React.createClass({
         <td>{this.props.game.minNumPlayers} - {this.props.game.maxNumPlayers}</td>
         <td>{this.props.game.lastPlayed}</td>
         <td>{numPlays}</td>
-        <td><RecordPlay gameId={this.props.game.bggId} offset="0" csrf={this.props.csrf}/></td>
+        <td><RecordPlay key={this.props.game.bggId} gameId={this.props.game.bggId} offset="0" csrf={this.props.csrf}/></td>
       </tr>;
   }
 });
@@ -91,7 +91,7 @@ var RecordPlay = React.createClass({
       var currDate = new Date(today);
       currDate.setDate(currDate.getDate() + i);
       var dateStr = (currDate.getMonth() + 1) + "/" + currDate.getDate() + "/" + currDate.getFullYear();
-      var opt = <option value={dateStr}>{dateStr}</option>;
+      var opt = <option key={dateStr} value={dateStr}>{dateStr}</option>;
       dates.push(opt);
     }
     var sel = <select onChange={this.handleDateChange}>{dates}</select>;
@@ -128,6 +128,7 @@ var Home = React.createClass({
              maxTime: 0 };
   },
   render: function() {
+      console.log("render home");
       var gameRows = [];
       //var filteredGames = this.filterGames(this.props.allGames);
       var sortedGames = this.state.games;
@@ -140,22 +141,22 @@ var Home = React.createClass({
         }
       }
 
-      var search = <div id="search">Search <input type="text" onKeyUp={this.searchKeyUp}/></div>
+      var search = <div key="search" id="search">Search <input type="text" onKeyUp={this.searchKeyUp}/></div>
       return <div id="homeDiv">{search}<br/>{this.formNumPlayersFilter()}<br/><br/>
         {this.formTimeFilter()}<br/><br/>
         {this.formComplexityFilter()}<br/><br/>
-        <table id="gamesTable"><tbody>
-        <tr id="gamesHeaderRow">
-          <th onClick={this.formChangeSortFn(RANK_SORT)} >Ranking</th>
-          <th>Name</th>
-          <th onClick={this.formChangeSortFn(RATING_SORT)}>Rating</th>
-          <th onClick={this.formChangeSortFn(COMPLEXITY_SORT)} >Complexity</th>
-          <th onClick={this.formChangeSortFn(PLAYTIME_SORT)}>Play Time</th>
-          <th onClick={this.formChangeSortFn(NUM_RATINGS_SORT)} ># Ratings</th>
-          <th># Players</th>
-          <th onClick={this.formChangeSortFn(LAST_PLAYED_SORT)} >Last played</th>
-          <th onClick={this.formChangeSortFn(NUM_PLAYS_SORT)}># Plays</th>
-          <th></th>
+        <table id="gamesTable" key="gamesTable"><tbody>
+        <tr key="headerRow" id="gamesHeaderRow">
+          <th key="rank" onClick={this.formChangeSortFn(RANK_SORT)} >Ranking</th>
+          <th key="name" >Name</th>
+          <th key="rating" onClick={this.formChangeSortFn(RATING_SORT)}>Rating</th>
+          <th key="complexity" onClick={this.formChangeSortFn(COMPLEXITY_SORT)} >Complexity</th>
+          <th key="time" onClick={this.formChangeSortFn(PLAYTIME_SORT)}>Play Time</th>
+          <th key="numRate" onClick={this.formChangeSortFn(NUM_RATINGS_SORT)} ># Ratings</th>
+          <th key="numPlayers" ># Players</th>
+          <th key="datePlayed" onClick={this.formChangeSortFn(LAST_PLAYED_SORT)} >Last played</th>
+          <th key="playCount" onClick={this.formChangeSortFn(NUM_PLAYS_SORT)}># Plays</th>
+          <th key="empty"></th>
         </tr>
        { gameRows}
        </tbody>
@@ -166,17 +167,17 @@ var Home = React.createClass({
   // forms the filter for time of the games
   formTimeFilter: function() {
 
-    return <div id="timeFilterDiv">Max Length: <input type="number" onBlur={this.timeFilterOnBlur}/></div>;
+    return <div id="timeFilterDiv" key="timeFilter">Max Length: <input key="timeFilter" type="number" onBlur={this.timeFilterOnBlur}/></div>;
 
   },
 
   // Forms the filter inputs to filter games by their complexity rating.
   formComplexityFilter: function() {
 
-    return <div >Complexity: 
-      <input type="text" id="minComplex" onBlur={this.minComplexityBlur}/>
+    return <div key="complexFilter">Complexity: 
+      <input type="text" key="minComplex" id="minComplex" onBlur={this.minComplexityBlur}/>
       to 
-      <input type="text" id="maxComplex" onBlur={this.maxComplexityBlur}/>
+      <input type="text" key="maxComplex" id="maxComplex" onBlur={this.maxComplexityBlur}/>
       </div>;
 
   },
@@ -230,12 +231,12 @@ var Home = React.createClass({
     var options = [];
     for (var i = 0; i <= 12; i++) {
       var showVal = i == 0 ? "" : (i + "");
-      var opt = <option value={i}>{showVal}</option>;
+      var opt = <option key={i} value={i}>{showVal}</option>;
       options.push(opt);
     }
-    return <div id="numPlayersFilter">
+    return <div id="numPlayersFilter" key="playersDiv">
         Num Players:
-        <select id="numPlayersSelect" onChange={this.handleNumPlayersFilterChange}>{options} </select>
+        <select key="playersSelect" id="numPlayersSelect" onChange={this.handleNumPlayersFilterChange}>{options} </select>
       </div>;
   },
 
@@ -340,6 +341,7 @@ var Home = React.createClass({
 });
 var ByDate = React.createClass({
   render: function() {
+    console.log("render byDate");
     var byDate = {};
     // for each day in the week
     for (var i = 0; i < 7; i += 1) {
@@ -365,17 +367,17 @@ var ByDate = React.createClass({
           dateStr = "";
         }
         var show = 
-          <span>
-            <span className="play">{dateStr}</span>
-            <span className="gameName"> {name}</span>
+          <span key={dateStr + "Plays"}>
+            <span className="play" key={dateStr}>{dateStr}</span>
+            <span className="gameName" key={name}> {name}</span>
           </span>;
         forDay.push(show);
-        forDay.push(<br/>);
+        forDay.push(<br key={"br" + dateStr}/>);
         prevDateStr = playObjArr[j]["date"]; // can't use dateStr since may be empty from above
       }
       byDate[i] = forDay;
     }   
-    return  <div id="playsByDate">
+    return  <div id="playsByDate" key="playsByDate">
        <div id="mondays"><b>Monday</b><br/>{byDate[0]}</div>
        <div id="fridays"><b>Friday</b><br/>{byDate[4]}</div>
        <div id="saturdays"><b>Saturday</b><br/>{byDate[5]}</div>
@@ -407,18 +409,19 @@ var HomeContainer = React.createClass({
   },
 
   render: function() {
-
+    console.log("render homecontainer");
     return <div>
       <div id="byDate">
         <ByDate allGames={this.props.allGames} byDate={this.props.byDate} searchStr={this.state.searchStr} csrf={this.props.csrf}/>
       </div>
       <div id="allGames">
-        <Home allGames={this.props.allGames} onSearchChange={this.onSearchChange} csrf={this.props.csrf}/>
+        <Home allGames={this.props.allGames} onSearchChange={this.onSearchChange} csrf={this.props.csrf} key="homeGameList"/>
       </div>
     </div>
   },
 
   onSearchChange: function(keyword) {
+    console.log("searchChange: " + keyword);
     if (keyword) {
       keyword = keyword.toLowerCase();
     }
