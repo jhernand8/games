@@ -128,7 +128,6 @@ var Home = React.createClass({
              maxTime: 0 };
   },
   render: function() {
-      console.log("render home");
       var gameRows = [];
       //var filteredGames = this.filterGames(this.props.allGames);
       var sortedGames = this.state.games;
@@ -341,7 +340,6 @@ var Home = React.createClass({
 });
 var ByDate = React.createClass({
   render: function() {
-    console.log("render byDate");
     var byDate = {};
     // for each day in the week
     for (var i = 0; i < 7; i += 1) {
@@ -356,8 +354,8 @@ var ByDate = React.createClass({
       for (var j = 0; j < playObjArr.length; j += 1) {
         var name = this.findGameName(playObjArr[j]["bggId"]);
 
-        if (this.props.searchStr) {
-          if (this.props.searchStr.length > 0 && !name.toLowerCase().contains(this.props.searchStr)) {
+        if (this.props.searchStr && name) {
+          if (this.props.searchStr.length > 0 && !name.toLowerCase().includes(this.props.searchStr)) {
             continue;
           }
         }
@@ -409,7 +407,6 @@ var HomeContainer = React.createClass({
   },
 
   render: function() {
-    console.log("render homecontainer");
     return <div>
       <div id="byDate">
         <ByDate allGames={this.props.allGames} byDate={this.props.byDate} searchStr={this.state.searchStr} csrf={this.props.csrf}/>
@@ -421,7 +418,6 @@ var HomeContainer = React.createClass({
   },
 
   onSearchChange: function(keyword) {
-    console.log("searchChange: " + keyword);
     if (keyword) {
       keyword = keyword.toLowerCase();
     }
@@ -433,13 +429,13 @@ var HomeContainer = React.createClass({
 
 React.render(
   <HomeContainer allGames={allGames} byDate={byDate} csrf={document.getElementsByName("csrfmiddlewaretoken")[0].value}/>, document.getElementById("home"));
-React.render(
-  <ByDate allGames={allGames} byDate={byDate}csrf={document.getElementsByName("csrfmiddlewaretoken")[0].value}/>, document.getElementById("byDate"));
 </script>
 </head>
 <body>
 {% csrf_token %} 
 <h1>Boardgames</h1>
+<div id="home"></div>
+<div id="home"></div>
 <div id="home"></div>
 <br/><br/><span>Data from www.boardgamegeek.com</span>
 </body>
