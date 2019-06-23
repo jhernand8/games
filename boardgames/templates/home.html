@@ -32,6 +32,13 @@
      display: inline-block;
      min-width: 80px;
    }
+
+   span.dateOptSpan {
+     white-space: nowrap;
+   }
+   span.dateOptSpan input {
+     width: 120px;
+   }
   </style>
   <script src="https://fb.me/react-0.13.0.js"></script>
   <script src="https://fb.me/JSXTransformer-0.13.0.js"></script>
@@ -87,6 +94,7 @@ var RecordPlay = React.createClass({
     var dates = [];
 
     var today = new Date();
+    dates.push(<option value=""></option>);
     for (var i = 0; i >= -30; i--) {
       var currDate = new Date(today);
       currDate.setDate(currDate.getDate() + i);
