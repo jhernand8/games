@@ -367,10 +367,11 @@ var ByDate = React.createClass({
         if (dateStr === prevDateStr) {
           dateStr = "";
         }
+        var notes = playObjArr[j]["notes"];
         var show = 
           <span key={dateStr + "" + j + "Plays"}>
             <span className="play" key={dateStr}>{dateStr}</span>
-            <span className="gameName" key={name + dateStr}> {name}</span>
+            <span className="gameName" key={name + dateStr} title={notes}> {name}</span>
           </span>;
         forDay.push(show);
         forDay.push(<br key={"br" + dateStr + " " + j}/>);

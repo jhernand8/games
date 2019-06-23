@@ -57,6 +57,7 @@ def form_json_plays_by_day(allPlays) :
     obj = {};
     obj["date"] = play.date.isoformat()
     obj["bggId"] = play.bggId
+    obj["notes"] = play.notes
     byDate[play.date.weekday()].append(obj)
   return byDate;
 
