@@ -365,10 +365,8 @@ var ByDate = React.createClass({
       for (var j = 0; j < playObjArr.length; j += 1) {
         var name = this.findGameName(playObjArr[j]["bggId"]);
 
-        if (this.props.searchStr && name) {
-          if (this.props.searchStr.length > 0 && !name.toLowerCase().includes(this.props.searchStr)) {
-            continue;
-          }
+        if (!this.matchesSearch(name, playObjArr[j])) {
+          continue;
         }
         var dateStr = playObjArr[j]["date"];
         // if same date as before, don't show date
@@ -399,6 +397,21 @@ var ByDate = React.createClass({
 
   },
 
+  // returns true if this play matches the search. True if play should be shown, false otherwise.
+  matchesSearch: function(name, playObj) {
+    if (!this.props.searchStr || this.props.searchStr.length <= 0) {
+      return true;
+    }
+
+    if (name && name.toLowerCase().includes(this.props.searchStr)) {
+      return true;
+    }
+    if (playObj["notes"] && playObj["notes"].toLowerCase().includes(this.props.searchStr)) {
+      return true;
+    }
+    return false;
+
+  },
   // returns the name of the game with the given id
   findGameName: function(id) {
     var name = "";
