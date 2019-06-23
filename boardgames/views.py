@@ -67,8 +67,9 @@ def addGamePlay(request):
   data = json.loads(request.body);
   id = int(data["gameId"]);
   dateStr = str(data["date"]);
-  playDate = datetime.datetime.strptime(dateStr, "%m/%d/%Y"); 
-  play = GamePlay(bggId = id, date = playDate);
+  playDate = datetime.datetime.strptime(dateStr, "%m/%d/%Y");
+  notesStr = str(data["notes"])
+  play = GamePlay(bggId = id, date = playDate, notes = notesStr);
   play.save();
   return HttpResponse("Success");
 

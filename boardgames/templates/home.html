@@ -97,8 +97,11 @@ var RecordPlay = React.createClass({
     var sel = <select onChange={this.handleDateChange}>{dates}</select>;
 
     var sendBtn = <button className="sendBtn" onClick={this.handleSendClick}>Save</button>;
-    return <span className="dateOptSpan">{sel}{sendBtn}</span>;
+    return <span className="dateOptSpan">{sel}{sendBtn}<input type="text" name="notes" onChange={this.onNotesChange}/></span>;
 
+  },
+  onNotesChange: function(e) {
+    this.setState({ notes: e.target.value});
   },
 
   // Handles change of select option.
@@ -113,7 +116,7 @@ var RecordPlay = React.createClass({
         method: 'POST',
         headers: { 'X-CSRFToken': this.props.csrf
         },
-        body: JSON.stringify({gameId: self.props.gameId, date: self.state.dateSelected}) 
+        body: JSON.stringify({gameId: self.props.gameId, date: self.state.dateSelected, notes: self.state.notes}) 
       })
     .then(res => console.log(res));
   }

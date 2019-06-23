@@ -18,4 +18,4 @@ class Boardgame(models.Model):
 class GamePlay(models.Model):
   bggId = models.IntegerField()
   date = models.DateField()
-  
+  notes = models.TextField(null = True)
