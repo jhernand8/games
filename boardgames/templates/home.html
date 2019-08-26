@@ -155,6 +155,7 @@ var Home = React.createClass({
       return <div id="homeDiv">{search}<br/>{this.formNumPlayersFilter()}<br/><br/>
         {this.formTimeFilter()}<br/><br/>
         {this.formComplexityFilter()}<br/><br/>
+        {this.formPlayedFilter()}<br/><br/>
         <table id="gamesTable" key="gamesTable"><tbody>
         <tr key="headerRow" id="gamesHeaderRow">
           <th key="rank" onClick={this.formChangeSortFn(RANK_SORT)} >Ranking</th>
@@ -192,6 +193,28 @@ var Home = React.createClass({
 
   },
 
+  // Forms filter to filter for games that have played.
+  formPlayedFilter: function() {
+    return <div key="playedFilter">Played: 
+        <input type="checkbox" key="playedBefore" id="playedBefore" onChange={this.onPlayedChange} onClick={this.onPlayedChange}/>
+      </div>;
+
+  },
+
+  // Handler for when played checkbox changes.
+  onPlayedChange: function(e) {
+    var isSelected = e.target.checked;
+    var games = 
+      this.filterGames(this.props.allGames,
+                       this.searchKeyword,
+                       this.state.numPlayersFilterNum,
+                       this.state.maxTime,
+                       this.state.minComplexity,
+                       this.state.maxComplexity,
+                       isSelected);
+    this.setState({ playedOnly: isSelected, games: games});
+  },
+
   // Handler for blur of the max complexity input.
   maxComplexityBlur: function(e) {
     var val = parseFloat(e.target.value) || 0;
@@ -202,7 +225,8 @@ var Home = React.createClass({
                        this.state.numPlayersFilterNum,
                        this.state.maxTime,
                        this.state.minComplexity,
-                       val);
+                       val,
+                       this.state.playedOnly);
     this.setState({ maxComplexity: val, games: filteredGames});
 
   },
@@ -217,7 +241,8 @@ var Home = React.createClass({
                        this.state.numPlayersFilterNum,
                        this.state.maxTime,
                        val,
-                       this.state.maxComplexity);
+                       this.state.maxComplexity,
+                       this.state.playedOnly);
     this.setState({ minComplexity: val, games: filteredGames});
 
   },
@@ -231,7 +256,7 @@ var Home = React.createClass({
                        this.searchKeyword,
                        this.state.numPlayersFilterNum,
                        time,
-                       this.state.minComplexity, this.state.maxComplexity);
+                       this.state.minComplexity, this.state.maxComplexity, this.state.playedOnly);
     this.setState({maxTime: time, games: filteredGames});
 
   },
@@ -265,24 +290,24 @@ var Home = React.createClass({
       val = 0;
     }
     this.setState({ numPlayersFilterNum: val,
-                    games: this.filterGames(this.props.allGames, this.state.searchKeyword, val, this.state.maxTime, this.state.minComplexity, this.state.maxComplexity)});
+                    games: this.filterGames(this.props.allGames, this.state.searchKeyword, val, this.state.maxTime, this.state.minComplexity, this.state.maxComplexity, this.state.playedOnly)});
   },
 
   // Filters out games that don't meet certain criteria (stored in state) and
   // returns array of games that do match all the criteria.
-  filterGames: function(games, keyword, numPlayersFilterNum, maxTime, minComplex, maxComplex) {
+  filterGames: function(games, keyword, numPlayersFilterNum, maxTime, minComplex, maxComplex, playedOnly) {
     var filtered = [];
     // do this here so don't have to call toLowerCase for every game
     if (keyword) {
       keyword = keyword.toLowerCase();
     }
     if ((!numPlayersFilterNum) && ((!keyword) || keyword.length == 1) && !maxTime
-        && !minComplex && !maxComplex)
+        && !minComplex && !maxComplex && !playedOnly)
     {
       return games;
     }
     for (var i = 0; i < games.length; i++) {
-      if (this.matchesFilters(games[i], keyword, numPlayersFilterNum, maxTime, minComplex, maxComplex)) {
+      if (this.matchesFilters(games[i], keyword, numPlayersFilterNum, maxTime, minComplex, maxComplex, playedOnly)) {
         filtered.push(games[i]);
       }
     }
@@ -290,7 +315,7 @@ var Home = React.createClass({
   },
 
   // Returns true if the game matches all current filters, false otherwise.
-  matchesFilters: function(game, keyword, numPlayersFilter, maxTime, minComplex, maxComplex) {
+  matchesFilters: function(game, keyword, numPlayersFilter, maxTime, minComplex, maxComplex, playedOnly) {
     if (keyword && keyword.length > 1) {
       // if does not contain keyword, immediately return
       if (!game.lowername.includes(keyword)) {
@@ -298,6 +323,9 @@ var Home = React.createClass({
       }
     }
 
+    if (playedOnly && !(game.numPlays > 0)) {
+      return false;
+    }
     if (numPlayersFilter > 0) {
       var matchesPlayers =
         game.minNumPlayers <= numPlayersFilter
@@ -344,7 +372,8 @@ var Home = React.createClass({
          this.state.numPlayersFilterNum,
          this.state.maxTime,
          this.state.minComplexity,
-         this.state.maxComplexity);
+         this.state.maxComplexity,
+         this.state.playedOnly);
     this.setState({searchKeyword: e.target.value, games: games});
     this.props.onSearchChange(newKey);
   },
