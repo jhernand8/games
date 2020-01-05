@@ -71,7 +71,12 @@ var SingleGame = React.createClass({
   render: function() {
     var url = "https://www.boardgamegeek.com" + this.props.game.bggUrl;
     var aHref = <a href={url}>{this.props.game.name}</a>;
-    var numPlays = this.props.game.numPlays == 0 ? "" : this.props.game.numPlays;
+    var numPlays = "";
+    if (this.props.game.numPlays > 0) {
+      var playsText = formPlaysText();
+      numPlays = <span className="numGamePlays" title={playsText}>{this.props.game.numPlays}</span>;
+
+    }
     return <tr>
 
         <td>{this.props.game.ranking}</td>
@@ -85,6 +90,19 @@ var SingleGame = React.createClass({
         <td>{numPlays}</td>
         <td><RecordPlay key={this.props.game.bggId} gameId={this.props.game.bggId} offset="0" csrf={this.props.csrf}/> {this.props.game.plays}</td>
       </tr>;
+  },
+
+  // forms the display/text to display about the plays for agiven game.
+  formPlaysText: function() {
+    var playsDisplay = "";
+    for (var i = 0; i < this.props.game.plays.length; i += 1) {
+      var currPlay = this.props.games.plays[i];
+      playsDisplay += currPlay["date"] + ": " + currPlay["notes"];
+      playsDisplay += "\n";
+    }
+
+    return playsDisplay;
+
   }
 });
 
