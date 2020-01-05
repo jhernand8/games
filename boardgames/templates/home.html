@@ -83,7 +83,7 @@ var SingleGame = React.createClass({
         <td>{this.props.game.minNumPlayers} - {this.props.game.maxNumPlayers}</td>
         <td>{this.props.game.lastPlayed}</td>
         <td>{numPlays}</td>
-        <td><RecordPlay key={this.props.game.bggId} gameId={this.props.game.bggId} offset="0" csrf={this.props.csrf}/></td>
+        <td><RecordPlay key={this.props.game.bggId} gameId={this.props.game.bggId} offset="0" csrf={this.props.csrf}/> {this.props.game.plays}</td>
       </tr>;
   }
 });

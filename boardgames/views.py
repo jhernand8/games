@@ -36,6 +36,11 @@ def home(request):
     plays = sorted(plays, key=lambda gp: gp.date.toordinal(), reverse=True);
     gameJSON["numPlays"] = len(plays)
 
+    playsJSON = {};
+    for play in plays:
+      playsJSON.append(form_json_for_play(play)
+
+    gameJSON["plays"] = playsJSON;
     if len(plays) > 0:
       gameJSON["lastPlayed"] = plays[0].date.isoformat()
     if len(plays) > 1:
@@ -46,6 +51,13 @@ def home(request):
   return render(request, 'home.html', {'allGames': mark_safe(json.dumps(gameJSONs, cls=DjangoJSONEncoder)),
                                        'byDate': mark_safe(json.dumps(byDate, cls=DjangoJSONEncoder))})
 
+# Returns a json object representing the given play instance of a game.
+def form_json_for_play(gameplay):
+  play = {}
+  play["date"] = gameplay.date.isoformat()
+  play["bggId"] = gameplay.bggId
+  play["notes"] = gameplay.notes
+  return play;
 
 # Returns a json object of all plays by day of week
 def form_json_plays_by_day(allPlays) :
