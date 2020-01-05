@@ -36,7 +36,7 @@ def home(request):
     plays = sorted(plays, key=lambda gp: gp.date.toordinal(), reverse=True);
     gameJSON["numPlays"] = len(plays)
 
-    playsJSON = {};
+    playsJSON = [];
     for play in plays:
       playsJSON.append(form_json_for_play(play))
 
