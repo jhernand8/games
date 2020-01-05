@@ -38,7 +38,7 @@ def home(request):
 
     playsJSON = {};
     for play in plays:
-      playsJSON.append(form_json_for_play(play)
+      playsJSON.append(form_json_for_play(play))
 
     gameJSON["plays"] = playsJSON;
     if len(plays) > 0:
