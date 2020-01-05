@@ -73,7 +73,7 @@ var SingleGame = React.createClass({
     var aHref = <a href={url}>{this.props.game.name}</a>;
     var numPlays = "";
     if (this.props.game.numPlays > 0) {
-      var playsText = formPlaysText();
+      var playsText = this.formPlaysText();
       numPlays = <span className="numGamePlays" title={playsText}>{this.props.game.numPlays}</span>;
 
     }
