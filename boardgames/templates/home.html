@@ -96,7 +96,7 @@ var SingleGame = React.createClass({
   formPlaysText: function() {
     var playsDisplay = "";
     for (var i = 0; i < this.props.game.plays.length; i += 1) {
-      var currPlay = this.props.games.plays[i];
+      var currPlay = this.props.game.plays[i];
       playsDisplay += currPlay["date"] + ": " + currPlay["notes"];
       playsDisplay += "\n";
     }
