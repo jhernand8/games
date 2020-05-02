@@ -20,7 +20,12 @@
    }
    #mondays, #fridays, #saturdays, #sundays, #tuesdays, #wednesdays, #thursdays {
      float: left;
-     padding: 20px;
+     padding-top: 20px;
+     padding-bottom: 20px;
+     padding-right: 17px;
+   }
+   #byDate div {
+     font-size: 11px;
    }
 
    #byDate {
@@ -30,7 +35,7 @@
 
    #byDate span.play {
      display: inline-block;
-     min-width: 80px;
+     min-width: 60px;
    }
 
    span.dateOptSpan {
@@ -435,12 +440,12 @@ var ByDate = React.createClass({
     }   
     return  <div id="playsByDate" key="playsByDate">
        <div id="mondays"><b>Monday</b><br/>{byDate[0]}</div>
-       <div id="fridays"><b>Friday</b><br/>{byDate[4]}</div>
-       <div id="saturdays"><b>Saturday</b><br/>{byDate[5]}</div>
-       <div id="sundays"><b>Sunday</b><br/>{byDate[6]}</div>
        <div id="tuesdays"><b>Tuesday</b><br/>{byDate[1]}</div>
        <div id="wednesdays"><b>Wednesday</b><br/>{byDate[2]}</div>
        <div id="thursdays"><b>Thursday</b><br/>{byDate[3]}</div>
+       <div id="fridays"><b>Friday</b><br/>{byDate[4]}</div>
+       <div id="saturdays"><b>Saturday</b><br/>{byDate[5]}</div>
+       <div id="sundays"><b>Sunday</b><br/>{byDate[6]}</div>
       </div>;
 
   },
@@ -507,8 +512,6 @@ React.render(
 <body>
 {% csrf_token %} 
 <h1>Boardgames</h1>
-<div id="home"></div>
-<div id="home"></div>
 <div id="home"></div>
 <br/><br/><span>Data from www.boardgamegeek.com</span>
 </body>
