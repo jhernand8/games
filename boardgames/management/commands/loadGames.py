@@ -10,10 +10,11 @@ from bs4 import BeautifulSoup
 # Command to fetch game list from boardgame geek
 class Command(BaseCommand):
   def handle(self, *args, **options):
+    print("Running load games")
     # only run few times a month, not daily
     currDay = datetime.datetime.now().day
-    if currDay != 25 and currDay != 10 and currDay != 14:
-      return;
+    #if currDay != 25 and currDay != 10 and currDay != 14:
+    #  return;
     maxNumPages = 40;
     baseUrl = "https://www.boardgamegeek.com/browse/boardgame/page/"
     allGames = Boardgame.objects.all();
@@ -27,8 +28,13 @@ class Command(BaseCommand):
         table = html.find("table", id="collectionitems")
         rows = table.findAll("tr")
 
+        print("Fetched table trs")
+        rnum = 0
         # go thru each row in the table - each row representing a different game
         for currRow in rows:
+          rnum += 1
+          if rnum == 1:
+            print(f"ROW FOUND: {currRow}")
           tdElems = currRow.find_all("td", attrs={"class": "collection_rank"});
           if len(tdElems) < 1:
             continue;
