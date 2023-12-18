@@ -15,11 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from boardgames import views
+from boardgames import hnprojtopstoriesviews, views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home),
     path('/', views.home),
     path('savePlay', views.addGamePlay),
+    path('topStories', hnprojtopstoriesviews.home),
 ]
