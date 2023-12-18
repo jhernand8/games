@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.shortcuts import redirect
 from django.http import HttpResponse
 from django import http
 from django.template import RequestContext, loader
@@ -78,4 +79,25 @@ def get_top_url_strings():
           "mercurynews.com"
          ];
   return urls;
+
+def update_top_items(request):
+    url = 'https://hacker-news.firebaseio.com/v0/topstories.json';
+    data = json.load(urlopen(url));
+    jsonStr = json.dumps(data);
+    topIdsObj = TopStoryIdsByTime(storyIds = data);
+    topIdsObj.save();
+    return http.HttpResponse("updated");
+
+# removes top stories from the db.
+def remove_top_items(request):
+    ids = request.POST.getlist('storyId');
+    allTopStories = HNTopStory.objects.all();
+    delCount = 0;
+    for story in allTopStories:
+        storyId = story.hnStoryId
+        if str(storyId) in ids or storyId in ids:
+            story.marked_deleted = True
+            story.save()
+            delCount = delCount + 1;
+    return redirect("/topStories");
 

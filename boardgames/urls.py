@@ -23,4 +23,6 @@ urlpatterns = [
     path('/', views.home),
     path('savePlay', views.addGamePlay),
     path('topStories', hnprojtopstoriesviews.home),
+    path('cronAddCurrTopItems', hnprojtopstoriesviews.update_top_items),
+    path('removeTopStories', hnprojtopstoriesviews.remove_top_items),
 ]
