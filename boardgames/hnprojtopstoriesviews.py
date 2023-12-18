@@ -7,9 +7,9 @@ from django.utils.safestring import mark_safe
 from urllib.request import urlopen
 import json
 from json import JSONEncoder
-from hnproj.models import HNStory
-from hnproj.models import TopStoryIdsByTime
-from hnproj.models import HNTopStory
+from boardgames.models import HNStory
+from boardgames.models import TopStoryIdsByTime
+from boardgames.models import HNTopStory
 import string
 
 def home(request):
