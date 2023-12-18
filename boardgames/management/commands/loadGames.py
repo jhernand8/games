@@ -23,9 +23,12 @@ class Command(BaseCommand):
       url = baseUrl + str(i)
       print("url: " + url);
       resp = urlopen(url)
+      print("after open url")
       html = BeautifulSoup(resp.read(), 'html.parser')
+      print("after html")
       try:
         table = html.find("table", id="collectionitems")
+        print("after html table")
         rows = table.findAll("tr")
 
         print("Fetched table trs")
@@ -33,23 +36,26 @@ class Command(BaseCommand):
         # go thru each row in the table - each row representing a different game
         for currRow in rows:
           rnum += 1
-          if rnum == 1:
+          if rnum <= 2:
             print(f"ROW FOUND: {currRow}")
           tdElems = currRow.find_all("td", attrs={"class": "collection_rank"});
+          print("here2")
           if len(tdElems) < 1:
             continue;
+          print("here3")
           nameTd = currRow.find_all("td", attrs={"class": "collection_objectname"})[0]; 
           nameA = nameTd.find("a");
           name = nameA.contents[0]
           
           rank = str(tdElems[0].text.strip());
+          print(f"here4:{rank}:{name}:{nameTd}:{nameA}")
 
           gameUrl = nameA['href'];
 
           # extract bgg id
           bggId = gameUrl[11:]
           bggId = bggId[0:bggId.find("/")]
-
+          print("here5")
           # see if it exists, and if so, we will update the game
           if self.existsGameWithBGGId(int(bggId), allGames):
             game = self.gameWithBGGId(int(bggId), allGames)
