@@ -1,0 +1,409 @@
+<html>
+<head>
+  <style>
+    .singleStoryDiv {
+      padding-top: 5px;
+    }
+    span.checkBackSpan {
+      font-size: 15px;
+      font-weight: bold;
+    }
+   .timeType, .mins, .secs, .days, .hours {
+       width: 150;
+       display: inline-block;
+   }
+  </style>
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="/static/story.css">
+  <script src="https://fb.me/react-0.13.0.js"></script>
+  <script src="https://fb.me/JSXTransformer-0.13.0.js"></script>
+  <script type="text/jsx" src="{% static "SingleHNStory.jsx" %}"></script>
+<script type="text/jsx">
+
+/** @jsx React.DOM */
+var allTopStories = {{ allStories }};
+var hnprojapp = hnprojapp || {};
+function monthToStr(month) {
+  switch (month) {
+    case 0:
+      return "Jan"; break;
+    case 1:
+      return "Feb"; break;
+    case 2:
+      return "Mar"; break;
+    case 3:
+      return "Apr"; break;
+    case 4:
+      return "May"; break;
+    case 5:
+      return "June"; break;
+    case 6:
+      return "July"; break;
+    case 7:
+      return "Aug"; break;
+    case 8:
+      return "Sept"; break;
+    case 9:
+      return "Oct"; break;
+    case 10:
+      return "Nov"; break;
+    case 11:
+      return "Dec"; break;
+  }
+  return "";
+}
+// returns the maximum number of stories to show for the given date/time
+function computeNumStoriesToShow(currDate) {
+    var dayOfWeek = currDate.getDay();
+    var hour = currDate.getHours();
+    var countByDayPer2Hour = [
+    //12a 2a  4a  6a  8a  10  12   2p  4p  6   8   10 -end time of range
+      [0,  0,  0, -1, -1,  0,  0,  0,  0, -1, -1,  0], // Sunday
+      [0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0], // Monday
+      [0,  0, -1, -1, -1,  0, -1,  0,  0,  0,  0,  0], // Tuesday
+      [0,  0,  0,  0,  0,  0,  0,  0,  0, -1, -1,  0], // Wednesday
+      [0,  0,  0, -1, -1,  0, -1,  0, -1, -1, -1, -1], // Thursday
+      [0,  0,  0, -1, -1,  0,  0,  0, -1, -1,  0,  0], // Friday
+      [0,  0,  0, -1, -1, -1, -1, -1, -1,  -1, 0,  0], // Saturday
+      // old
+      //[0,  0, -1,  0, -1,  0, -1,  0,  0, -1,  0,  0], // Sunday
+      //[0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0], // Monday
+      //[0,  0, -1, -1, -1,  0,  0,  0,  0,  0,  0,  0], // Tuesday
+      //[0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0], // Wednesday
+      //[0,  0, -1, -1, -1,  0,  0,  0, -1, -1, -1, -1], // Thursday
+      //[0,  0, -1, -1, -1,  0,  0,  0, -1, -1,  0, -1], // Friday
+      //[0,  0, -1, -1, -1, -1, -1, -1,  0,  0, -1,  0], // Saturday
+    ];
+       
+    var per2HourForDay = countByDayPer2Hour[dayOfWeek];
+    return per2HourForDay[Math.floor(hour / 2)];
+}
+
+
+var SingleStory = React.createClass({
+  render: function() {
+    var url = this.props.story["url"];
+    var time = this.props.story["time"] * 1000;
+    var storyDate = new Date(time);
+    var month = storyDate.getMonth();
+    var datestr = monthToStr(month) + " " + storyDate.getDate() + ", " + storyDate.getFullYear();
+    var username = "";
+    var hnid = this.props.story["hnstoryid"];
+    var checkbox = <input type='checkbox' name='storyId'
+                          value={hnid} className='storyselect'
+                          onClick={this.checkboxClick}
+                          checked={this.props.checked}/>;
+    if (this.props.showUser) {
+      var userurl = 'https://news.ycombinator.com/user?id=' + this.props.story["by"];
+      username = <a className="usernameLink" href={userurl}>{this.props.story["by"]}</a>;
+    }
+    var itemurl = 'https://news.ycombinator.com/item?id=' + this.props.story["id"];
+    var scoreLink = <span className="score">
+       <a href={itemurl}>{this.props.story.score}</a></span>;
+    return (
+      <div className="singleStoryDiv">
+        {checkbox}
+        {scoreLink}
+        <a href={url}>{this.props.story["title"]}</a> 
+        <span className="storyDate">{datestr}</span>
+        <span className="username">{username}</span>
+      </div>
+    );
+  },
+
+  checkboxClick: function(ev) {
+    this.props.checkHandler(ev, this.props.index);
+  }
+});
+var AllStories = React.createClass({
+  getInitialState: function() {
+    var storiesArr = this.props.stories;
+    storiesArr.sort(function(a, b) {
+      return b.score - a.score;
+    });
+    // whether checked or not
+    var elemsChecked = [];
+    for (var i = 0; i < storiesArr.length; i++) {
+      elemsChecked[i] = false;
+    }
+    var scoreHundCount = [];
+    var isCheckedByHundScore = [];
+    if (this.props.checked) {
+
+      for (var s = 0; s < 50; s++) {
+        scoreHundCount[s] = 0;
+        isCheckedByHundScore[s] = false;
+      }
+      // first count num stories with score / 100
+      for (var j = 0; j < storiesArr.length; j++) {
+        if (storiesArr[j].score < this.getMinScoreToShow()) {
+          continue;
+        }
+        var sc = Math.floor(storiesArr[j].score / 100);
+        scoreHundCount[sc] += 1; 
+      }
+      this.fetchMarkNextGroupByScoreAsChecked(storiesArr, scoreHundCount, isCheckedByHundScore, elemsChecked, true);
+    }
+    return {sortedStories: storiesArr,
+            elemsChecked: elemsChecked,
+            shiftKey: false,
+            scoreHundCount: scoreHundCount,
+            lastShiftClickedIndex: -1,
+            isCheckedByHund: isCheckedByHundScore};
+  },
+
+  // for the next group of items grouped by hundreds portion of score, mark
+  // as checked.
+  fetchMarkNextGroupByScoreAsChecked: function(stories, scoreByHund, isCheckedByHund, elemsChecked, isInitial) {
+    
+    var countThresh = 20;
+
+    var firstUnchecked = -1;
+    for (var s = 0; s < 50; s++) {
+      // when loading page, check threshold count
+      if ((!isCheckedByHund[s]) && ((!isInitial) || scoreByHund[s] > countThresh)) {
+        firstUnchecked = s;
+        break;
+      }
+    }
+
+    if (firstUnchecked < 0) {
+      return;
+    }
+    isCheckedByHund[firstUnchecked] = true;
+
+    for (var i = 0; i < stories.length; i++) {
+      if (stories[i].score < this.getMinScoreToShow()) {
+        continue;
+      }
+      // start off checked if more than threshold number stories and not enough in lower scores
+      var scoreFloor = Math.floor(stories[i].score / 100);
+      if (scoreFloor == firstUnchecked) {
+        elemsChecked[i] = true;
+      }
+        
+    }
+  },
+
+  // on click to mark next group
+  handleClickCheckNextGroup: function(e) {
+    var isCheckedByHund = this.state.isCheckedByHund;
+    var storiesChecked = this.state.elemsChecked;
+    this.fetchMarkNextGroupByScoreAsChecked(this.state.sortedStories, this.state.scoreHundCount, isCheckedByHund, storiesChecked, false);
+    this.setState({ isCheckedByHund: isCheckedByHund, elemsChecked: storiesChecked});
+  },
+
+  // stories must have a score of at least this to be shown.
+  getMinScoreToShow: function() {
+    return 30;
+  },
+  render: function() {
+    var elems = [];
+    var currDate = new Date();
+    var maxToShow = computeNumStoriesToShow(currDate);
+    var count = 0;
+    for (var i = 0; i < this.state.sortedStories.length; i++) {
+      if (maxToShow === 0) {
+        break;
+      }
+      if (this.state.sortedStories[i].score > 0 && this.state.sortedStories[i].score < this.getMinScoreToShow()) {
+        continue;
+      }
+      elems.push(<SingleStory showUser={true}
+                              story={this.state.sortedStories[i]} 
+                              index={i}
+                              checkHandler={this.onCheckBoxClick}
+                              checked={this.state.elemsChecked[i]}/>);
+      count += 1;
+      if (maxToShow >= 0 && count > maxToShow) {
+        break;
+      }
+    }
+
+    if (maxToShow === 0) {
+      var dateForNextTime = new Date();
+      for (var i = 0; i < 24; i += 1) {
+        dateForNextTime = new Date(dateForNextTime.getTime() + 60*60*1000); // add one hour
+        if (computeNumStoriesToShow(dateForNextTime) !== 0) {
+          var hourTime = dateForNextTime.getHours();
+          elems.push(<span className='checkBackSpan'>
+              Check back around {hourTime} or in { i } hours. <br/>
+            </span>);
+          break;
+        }
+      }
+    }
+
+    if (this.props.checked) {
+      elems.push(<button type="button" onClick={this.handleClickCheckNextGroup}>Check group</button>);
+    }
+    return (<div><div onKeyUp={this.onKeyUpHandler}
+                 onKeyDown={this.onKeyDownHandler}>{elems}</div>
+            </div>);
+  },
+  onCheckBoxClick: function(ev, index) {
+    var elemsC = this.state.elemsChecked;
+    if (elemsC[index] === true) {
+      elemsC[index] = false;
+    }
+    else {
+      elemsC[index] = true;
+    }
+
+    // if there was a last shift clicked, then update checkboxes for all
+    // items in between
+    // rely on shiftKey from click event as it seems the div does not
+    // throw on key up/down events.
+    if (ev.shiftKey && this.state.lastShiftClickedIndex >= 0) {
+      var startInd = Math.min(index, this.state.lastShiftClickedIndex);
+      var endInd = Math.max(index, this.state.lastShiftClickedIndex);
+
+      for (var i = startInd; i <= endInd; i += 1) {
+        elemsC[i] = elemsC[index];
+      }
+      this.setState({lastShiftClickedIndex: -1});
+    }
+    else if (ev.shiftKey) {
+      this.setState({lastShiftClickedIndex: index});
+    }
+    else {
+      this.setState({lastShiftClickedIndex: -1});
+    }
+    this.setState({elemsChecked: elemsC});
+
+  },
+
+  // we want to record whether or not the user has the shift key up/down
+  // so we can select multiple checkboxes if they have been holding the shift down
+  onKeyUpHandler: function(ev) {
+    if (!ev.shiftKey) {
+      this.setState({shiftKey: false, lastShiftClickedIndex: -1});
+    }
+  },
+  
+  onKeyDownHandler: function(ev) {
+    if (ev.shiftKey) {
+      this.setState({shiftKey: true, lastShiftClickedIndex: -1});
+    }
+  }
+});
+
+var ScheduleOfWhenShow = React.createClass({
+  render: function() {
+    var currentDate = new Date();
+    if (currentDate.getDay() != 0) {
+      if (currentDate.getDate() <= 6) {
+        currentDate.setDate(currentDate.getDate() + 7 - currentDate.getDay());
+      }
+      else {
+        currentDate.setDate(currentDate.getDate() - currentDate.getDay());
+      }
+    }
+    currentDate.setHours(0);
+
+    var out = [];
+    var dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    var startDate = currentDate.getDate();
+    for (var day = 0; day < 7; day++) {
+      currentDate.setDate(startDate + day);
+      var row = [];
+      row.push(<td>{dayNames[day]}</td>);
+      for (var hour = 0; hour < 24; hour++) {
+        currentDate.setHours(hour);
+        var showCount = computeNumStoriesToShow(currentDate);
+        var content = showCount + "";
+        if (showCount === -1) {
+          content = <span className="showAll"  >{String.fromCharCode(10004)}</span>;
+        }
+        else if (showCount === 0) {
+          content = <span className="showNone">-</span>;
+        }
+        row.push(<td>{content}</td>);
+      }
+      var rowName = "dayRow";
+      if ((new Date()).getDay() === day) {
+        rowName = "currDay";
+      }
+      out.push(<tr className={rowName}>{row}</tr>);
+    }
+    var topRow = [];
+    topRow.push(<td/>);
+    for (var h = 0; h < 24; h++) {
+      topRow.push(<td>{h}</td>);
+    }
+    return <table className="scheduleTable"> <tr>{topRow}</tr>{out}</table>;
+  }
+});
+
+
+var AllStoriesByDate = React.createClass({
+  getDisplayDate: function(story) {
+    return datestr;
+
+  },
+
+  render: function() {
+    // split by date
+    var byDate = {};
+    var elems = [];
+    elems.push(<h3>By date</h3>);
+    var numStories = this.props.stories.length;
+    for (var i = 0; i < numStories; i++) {
+      var story = this.props.stories[i];
+      var timeDate = story["time"] * 1000;
+      var d = new Date(timeDate);
+      var dayDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      timeDate = dayDate.getTime() + 5; 
+      if (!(timeDate in byDate)) {
+        byDate[timeDate] = [];
+      }
+      byDate[timeDate].push(story)
+    }
+    var keys = Object.keys(byDate);
+    keys.sort();
+    keys.reverse();
+    for (var j = 0; j < keys.length; j++) {
+      var currDate = keys[j];
+      var timeDate = new Date(Number(currDate));
+      var month = timeDate.getMonth();
+      var datestr = monthToStr(month) + " " + timeDate.getDate() + ", " + timeDate.getFullYear();
+      var dateStories = byDate[currDate];
+      elems.push(<div><h3>{datestr}</h3><AllStories stories={dateStories}/></div>);
+    }
+    return (<div onKeyUp={this.onKeyUpHandler}
+                 onKeyDown={this.onKeyDownHandler}>{elems}</div>);
+  },
+
+});
+
+var topInSources = {{ top_urls }};
+React.render(
+  <AllStories stories={topInSources} checked={false}/>,
+  document.getElementById("topSources"));
+React.render(
+  <AllStories stories={allTopStories} checked={true}/>,
+  document.getElementById("topStories2"));
+React.render(
+  <ScheduleOfWhenShow/>,
+  document.getElementById("schedule"));
+</script>
+</head>
+<body>
+<form id="storyForm" method="post" action="/removeTopStories">
+{% csrf_token %}
+<br/><div id="time"></div><br/>
+<br/><br/><input type="Submit" value="Submit" name="Submit"/><br/><br/>
+<h2>Top Stories</h2>
+<div id="topSources"></div>
+<h4>All other top stories by score</h4>
+<div id="topStories2"></div>
+<br/><br/><input type="Submit" value="Submit" name="Submit"/>
+</form>
+<br/><br/>Schedule<br/><div id="schedule"></div>
+<br/><br/>
+top: Hourly<br/>
+combine: 13:30UTC,17UTC, 19:00UTC, 0:30UTC, 3:30UTC<br/>
+Combine winter: 5:30am, 9am, 11:00am, 1:30pm, 4:30pm, 7:30pm<br/>
+Combine summer: 6:30am, 10am, 12:00am, 2:30pm, 5:30pm, 8:30pm<br/>
+</body>
+</html>
