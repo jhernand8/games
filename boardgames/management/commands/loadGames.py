@@ -12,13 +12,14 @@ class Command(BaseCommand):
   def handle(self, *args, **options):
     # only run few times a month, not daily
     currDay = datetime.datetime.now().day
-    #if currDay != 25 and currDay != 10 and currDay != 14:
-    #  return;
+    if (currDay % 6) != 0:
+      return;
     maxNumPages = 40;
     baseUrl = "https://www.boardgamegeek.com/browse/boardgame/page/"
     allGames = Boardgame.objects.all();
 
     for i in range(1, maxNumPages):
+      print(f"Processing page {i}")
       url = baseUrl + str(i)
       resp = urlopen(url)
       html = BeautifulSoup(resp.read(), 'html.parser')
@@ -49,7 +50,6 @@ class Command(BaseCommand):
             game.save()
           else:
             game = Boardgame(name = name, ranking = int(rank), bggId = int(bggId), bggUrl = gameUrl); 
-            game.save()
 
           game = self.loadGameData(bggId, game)
 
