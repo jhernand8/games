@@ -81,7 +81,7 @@ class Command(BaseCommand):
     #https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&id=144733&stats=1
     url = 'https://www.boardgamegeek.com/xmlapi2/thing?type=boardgame&id=' + str(bggId) + '&stats=1'
     htmlResp = urlopen(url)
-    xml = BeautifulSoup(htmlResp.read(), 'xml')
+    xml = BeautifulSoup(htmlResp.read(), 'lxml')
 
     # weight
     weight = xml.find("averageweight")['value']

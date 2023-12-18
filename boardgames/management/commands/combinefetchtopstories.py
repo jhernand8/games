@@ -27,7 +27,7 @@ class Command(BaseCommand):
     min = pacificTime.minute
     if hour > 5 and hour <= 13:   
       return True;
-    if hour >= 15 and hour <= 23:
+    if hour >= 13 and hour <= 23:
       return True;
     return False
 
