@@ -37,7 +37,7 @@ def food(request):
     rjson["food"] = r.food
     toTry.append(rjson)
     
-  return render(request, 'home.html', {
+  return render(request, 'food.html', {
     'allMeals': mark_safe(json.dumps(mealJSONs, cls=DjangoJSONEncoder)),
     'allToTry': mark_safe(json.dumps(toTry, cls=DjangoJSONEncoder))});
   
