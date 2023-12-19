@@ -1,0 +1,236 @@
+<html>
+<head>
+  <style>
+   table {
+     border: 1px solid black;
+     border-collapse: collapse;
+   }
+   td, th {
+     border: 1px solid black;
+     border-collapse: collapse;
+     padding-left: 10px;
+     padding-right: 10px;
+   }
+   /* https://stackoverflow.com/questions/27525228/react-click-events-not-firing-on-mobile */
+   table tr#gamesHeaderRow th {
+     cursor: pointer;
+   }
+   form {
+     font-size: 25px;
+   }
+   form input, form select {
+     font-size: 25px;
+     padding-left: 5px;
+     margin-left: 5px;
+   }
+   form li {
+     margin-top: 5px;
+   }
+   table#mealsTable tr td {
+     white-space: nowrap;
+   }
+
+   table tr.startNewWeek {
+     border-top: 5px solid black;
+   }
+   table tr.day0, table tr.day6 {
+     color: #00BB00;
+   }
+   #search, #eatOut {
+     font-size: 20px;
+   }
+   #eatOut input {
+    transform: scale(2);
+    padding: 15px;
+  }
+  </style>
+  <script src="https://fb.me/react-0.13.0.js"></script>
+  <script src="https://fb.me/JSXTransformer-0.13.0.js"></script>
+<script type="text/jsx">
+/** @jsx React.DOM */
+
+var AllOther = React.createClass({
+  getInitialState: function() {
+    return { currOther: this.props.allOther}; 
+  },
+  render: function() {
+    var otherRows = [];
+    var prevDate = new Date();
+
+    for (var i = 0; i < this.state.currOther.length; i++) {
+      var currOther = this.state.currOther[i];
+
+      var cl = "";
+      // https://stackoverflow.com/questions/2488313/javascripts-getdate-returns-wrong-date
+      var date = new Date(currOther["date"] + "T00:00:00");
+      cl = "day" + date.getUTCDay() + " " + currOther["meal"];
+      if (this.isStartNewWeek(prevDate, date)) {
+        cl += " startNewWeek ";
+      }
+      var row = <tr className={cl} >
+          <td>{currOther["date"]}</td>
+          <td>{currOther["type"]}</td>
+          <td>{currOther["desc"]}</td>
+          <td>{currOther["attendee"]}</td>
+        </tr>;
+      otherRows.push(row);
+      prevDate = date;
+    }
+
+    var search = <input type="text" id="search" onChange={this.searchChange}/>;
+
+    return <div><br/>
+        {search}  
+        <br/><br/>
+        <table id="mealsTable"><tbody>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Desc</th>
+            <th>Who</th>
+          </tr>
+          {otherRows}
+          </tbody>
+        </table>
+      </div>;
+  },
+
+  // returns true if a week boundary occurs between the two dates
+  // prevDate is a date of the previous row which is a later date.
+  isStartNewWeek: function(prevDate, date) {
+    // handle Monday to Sunday
+    var prevDay = prevDate.getUTCDay();
+    var day = date.getUTCDay();
+    if (prevDay  === 1 && day === 0) {
+      return true;
+    }
+    var timeDiff = Math.floor(Math.abs(prevDate.getTime() - date.getTime())/(1000 * 60 * 60 * 24));
+    // if a week or more has passed
+    if (timeDiff >= 7) {
+      return true;
+    }
+    // under a day so can't cross boundary as already handled Sunday/Monday earlier
+    if (timeDiff <= 1) {
+      return false;
+    }
+    // less than a week but may cross a week boundary
+    if (prevDay < day && prevDay > 0) {
+      return true;
+    }
+    return false;
+  },
+
+  // called when the search input has been changed. Filters meals.
+  searchChange: function(e) {
+    var search = e.target.value;
+
+    var filteredOther = [];
+    if (!search) {
+      filteredOther = this.props.allOther;
+    }
+    else {
+      search = search.toLowerCase();
+      var splitSearch = search.split(" ");
+      for (var i = 0; i < this.props.allOther.length; i += 1) {
+        var desc = this.props.allOther[i]["desc"];
+        var type = this.props.allOther[i]["type"];
+        var attendees = this.props.allOther[i]["attendee"];
+
+        var matches = true;
+        for (var s = 0; s < splitSearch.length; s += 1) {
+          if ((desc && desc.toLowerCase().includes(splitSearch[s])) ||
+              (type && type.toLowerCase().includes(splitSearch[s])) ||
+              (attendees && attendees.toLowerCase().includes(splitSearch[s])))
+          {
+            matches = true;
+          }
+          else {
+            matches = false;
+            break;
+          }
+        }
+        if (matches) {
+          filteredOther.push(this.props.allOther[i]);
+        }
+      }
+    }
+    this.setState({currOther: filteredOther});
+  },
+
+});
+
+var OtherForm = React.createClass({
+
+  getInitialState: function() {
+    return { };
+  },
+
+  render: function() {
+   
+    // taken from boardgames
+    var dates = [];
+    var today = new Date();
+    for (var i = 0; i >= -40; i--) {
+      var currDate = new Date(today);
+      currDate.setDate(currDate.getDate() + i);
+      var dateStr = (currDate.getMonth() + 1) + "/" + currDate.getDate() + "/" + currDate.getFullYear();
+      var opt = <option value={dateStr}>{dateStr}</option>;
+      dates.push(opt);
+    }
+    var otherDate = <select name="date">{dates}</select>;
+
+    var options = [];
+    for (var j = 0; j < this.props.otherTypes.length; j++) {
+      var opt = this.props.otherTypes[j];
+      options.push(<option value={opt} key={opt}>{opt}</option>);
+    }
+    var typeOpt = <select name="type">
+        {options}
+      </select>;
+    return <form action="saveOther" method="POST">
+      <ul>
+        <li>Type{typeOpt} </li>
+        <li>Date{otherDate} </li>
+        <li>Desc<input type="text" name="desc"/></li>
+        <li>Attendees<input type="text" name="attendee"/></li>
+      </ul>
+      {% csrf_token %} </input>
+      <input type="Submit" value="Submit"/>
+    </form>
+
+  },
+
+});
+var allOther = {{ allOther}}
+var dateSort = function(a, b) {
+  var diff = new Date(b.date) - new Date(a.date);
+  if (diff === 0) { // if date is the same, then sort by type
+    return a.type.localeCompare(b.type); 
+  }
+  return diff;
+};
+allOther.sort(dateSort);
+
+var otherTypes = [];
+otherTypes.push("");
+otherTypes.push("");
+otherTypes.push("Kabuki springs");
+otherTypes.push("haircut");
+otherTypes.push("Land's End");
+for (var i = 0; i < allOther.length; i++) {
+  if (!otherTypes.includes(allOther[i]["type"])) {
+    otherTypes.push(allOther[i]["type"]);
+  }
+}
+React.render(<OtherForm allOther={allOther} otherTypes={otherTypes}/>, document.getElementById("otherForm"));
+React.render(<AllOther allOther={allOther} />, document.getElementById("allOthers"));
+</script>
+</head>
+<body>
+{% csrf_token %} 
+<h1>Other</h1>
+<div id="otherForm"></div>
+<br/><br/>
+<div id="allOthers"></div>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<html>
+<head>
+  <style>
+   table {
+     border: 1px solid black;
+     border-collapse: collapse;
+   }
+   td, th {
+     border: 1px solid black;
+     border-collapse: collapse;
+     padding-left: 10px;
+     padding-right: 10px;
+   }
+   /* https://stackoverflow.com/questions/27525228/react-click-events-not-firing-on-mobile */
+   table tr#gamesHeaderRow th {
+     cursor: pointer;
+   }
+   form {
+     font-size: 25px;
+   }
+   form input, form select {
+     font-size: 25px;
+     padding-left: 5px;
+     margin-left: 5px;
+   }
+   form li {
+     margin-top: 5px;
+   }
+   table#mealsTable tr td {
+     white-space: nowrap;
+   }
+
+   table tr.startNewWeek {
+     border-top: 5px solid black;
+   }
+   table tr.day0, table tr.day6 {
+     color: #00BB00;
+   }
+   #search, #eatOut {
+     font-size: 20px;
+   }
+   #eatOut input {
+    transform: scale(2);
+    padding: 15px;
+  }
+  div#mealForm {
+    float: left;
+    padding-right: 40px;
+  }
+  </style>
+  <script src="https://fb.me/react-0.13.0.js"></script>
+  <script src="https://fb.me/JSXTransformer-0.13.0.js"></script>
+<script type="text/jsx">
+/** @jsx React.DOM */
+
+var AllMeals = React.createClass({
+  getInitialState: function() {
+    return { currMeals: this.props.allMeals }; 
+            
+  },
+  render: function() {
+    var mealRows = [];
+    var prevDate = new Date();
+
+    for (var i = 0; i < this.state.currMeals.length; i++) {
+      var currMeal = this.state.currMeals[i];
+
+      var location = "";
+      if (currMeal.venue && currMeal.yelpUrl) {
+        location = <a href={currMeal.yelpUrl}>{currMeal.venue}</a>;
+      }
+      else if (currMeal.venue) {
+        location = currMeal.venue;
+      }
+      var cl = "";
+      // https://stackoverflow.com/questions/2488313/javascripts-getdate-returns-wrong-date
+      var date = new Date(currMeal["date"] + "T00:00:00");
+      cl = "day" + date.getUTCDay() + " " + currMeal["meal"];
+      if (this.isStartNewWeek(prevDate, date)) {
+        cl += " startNewWeek ";
+      }
+      var row = <tr className={cl} >
+          <td>{currMeal["date"]}</td>
+          <td>{currMeal["meal"]}</td>
+          <td>{location}</td>
+          <td>{currMeal["attendee"]}</td>
+          <td>{currMeal["food"]}</td>
+        </tr>;
+      mealRows.push(row);
+      prevDate = date;
+    }
+
+    var search = <input type="text" id="search" onChange={this.searchChange}/>;
+
+    return <div><br/>
+        {search}  <label id="eatOut"><input type="checkbox" name="eatOut" onChange={this.eatOutChange}/>Restaurants</label>
+        <br/><br/>
+        <table id="mealsTable"><tbody>
+          <tr>
+            <th>Date</th>
+            <th>Meal</th>
+            <th>Venue</th>
+            <th>Who</th>
+            <th>Food</th>
+          </tr>
+          {mealRows}
+          </tbody>
+        </table>
+      </div>;
+  },
+
+  // returns true if a week boundary occurs between the two dates
+  // prevDate is a date of the previous row which is a later date.
+  isStartNewWeek: function(prevDate, date) {
+    // handle Monday to Sunday
+    var prevDay = prevDate.getUTCDay();
+    var day = date.getUTCDay();
+    if (prevDay  === 1 && day === 0) {
+      return true;
+    }
+    var timeDiff = Math.floor(Math.abs(prevDate.getTime() - date.getTime())/(1000 * 60 * 60 * 24));
+    // if a week or more has passed
+    if (timeDiff >= 7) {
+      return true;
+    }
+    // under a day so can't cross boundary as already handled Sunday/Monday earlier
+    if (timeDiff <= 1) {
+      return false;
+    }
+    // less than a week but may cross a week boundary
+    if (prevDay < day && prevDay > 0) {
+      return true;
+    }
+    return false;
+  },
+
+  // called when checkbox for restaurants has been changed - filters meals.
+  eatOutChange: function(e) {
+    var checked = e.target.checked;
+    var filteredMeals = [];
+    if (!checked) {
+      filteredMeals = this.props.allMeals;
+    }
+    else {
+      for (var i = 0; i < this.props.allMeals.length; i += 1) {
+        if (this.props.allMeals[i]["venue"]) {
+          filteredMeals.push(this.props.allMeals[i]);
+        }
+      }
+    }
+    this.setState({currMeals: filteredMeals});
+
+  },
+
+
+  // called when the search input has been changed. Filters meals.
+  searchChange: function(e) {
+    var search = e.target.value;
+
+    var filteredMeals = [];
+    if (!search) {
+      filteredMeals = this.props.allMeals;
+    }
+    else {
+      search = search.toLowerCase();
+      var splitSearch = search.split(" ");
+      for (var i = 0; i < this.props.allMeals.length; i += 1) {
+        var venue = this.props.allMeals[i]["venue"];
+        var food = this.props.allMeals[i]["food"];
+        var meal = this.props.allMeals[i]["meal"];
+        var attendees = this.props.allMeals[i]["attendee"];
+
+        var matches = true;
+        for (var s = 0; s < splitSearch.length; s += 1) {
+          if ((venue && venue.toLowerCase().includes(splitSearch[s])) ||
+              (food && food.toLowerCase().includes(splitSearch[s])) ||
+              (attendees && attendees.toLowerCase().includes(splitSearch[s])) ||
+              (meal && meal.toLowerCase().includes(splitSearch[s])))
+          {
+            matches = true;
+          }
+          else {
+            matches = false;
+            break;
+          }
+        }
+        if (matches) {
+          filteredMeals.push(this.props.allMeals[i]);
+        }
+      }
+    }
+    this.setState({currMeals: filteredMeals});
+  },
+
+});
+
+
+// form for restaurants that want to try
+var ToTryForm = React.createClass({
+
+  render: function() {
+    return <div className="toTryDiv"><h2>Restaurants to try</h2>
+      <form action="saveToTry" method="POST">
+      <ul>
+        <li>Venue<input type="text" name="venue"/></li>
+        <li>Yelp URL<input type="text" name="url"/></li>
+        <li>Type of Food<input type="text" name="food"/></li>
+        <li>Location area<input type="text" name="area"/></li>
+        <li>Notes<input type="text" name="notes"/></li>
+      </ul>
+      {% csrf_token %} </input>
+      <input type="Submit" value="Submit"/>
+      </form>
+      </div>
+  }
+
+});
+
+var ToTryList = React.createClass({
+
+  render: function() {
+
+    var toTryRows = [];
+    for (var i = 0; i < this.props.allToTry.length; i += 1) {
+      var toTry = this.props.allToTry[i];
+      var venue = toTry.venue;
+      if (toTry.yelpUrl) {
+        venue = <a href={toTry.yelpUrl}>{toTry.venue}</a>;
+      }
+      var row = <tr><td>{venue}</td>
+        <td>{toTry.area}</td>
+        <td>{toTry.notes}</td>
+        <td>{toTry.food}</td>
+        </tr>;
+      toTryRows.push(row);
+    }
+
+    return <div>
+       <table>
+         <tr><th>Venue</th>
+             <th>Area</th>
+             <th>Notes</th>
+             <th>Food</th>
+         </tr>
+         {toTryRows}        
+       </table>
+      </div>;
+
+  }
+});
+
+var MealForm = React.createClass({
+
+  getInitialState: function() {
+    // take meals and see what dates already have everything for.
+    var mealDateDict = {};
+    for (var i = 0; i < this.props.allMeals.length; i += 1) {
+      var date = new Date(this.props.allMeals[i].date);
+      var dStr = (date.getUTCMonth() + 1) + "/" + date.getUTCDate() + "/" + date.getUTCFullYear();
+      if (!mealDateDict.hasOwnProperty(dStr)) {
+        mealDateDict[dStr] = [];
+      }
+      mealDateDict[dStr].push(this.props.allMeals[i].meal);
+    }
+    return { allMealDates: mealDateDict, selectedDate: "" };
+
+  },
+
+  // return true if all meals have been added for the given date by looking at state map
+  hasAllForDate: function(dateStr) {
+    return this.hasLunchForDate(dateStr) && this.hasDinnerForDate(dateStr);
+  },
+  hasDinnerForDate: function(dateStr) {
+    if (!this.state.allMealDates.hasOwnProperty(dateStr)) {
+      return false;
+    }
+
+    var mealArr = this.state.allMealDates[dateStr];
+
+    return mealArr.includes("Dinner");
+  },
+  
+  // True if lunch has been entered for this date.
+  hasLunchForDate: function(dateStr) {
+    if (!this.state.allMealDates.hasOwnProperty(dateStr)) {
+      return false;
+    }
+    var mealArr = this.state.allMealDates[dateStr];
+
+    return mealArr.includes("Lunch");
+  },
+
+  render: function() {
+   
+    // taken from boardgames
+    var dates = [];
+    var today = new Date();
+    for (var i = 0; i >= -90; i--) {
+      var currDate = new Date(today);
+      currDate.setDate(currDate.getDate() + i);
+      var dateStr = (currDate.getUTCMonth() + 1) + "/" + currDate.getUTCDate() + "/" + currDate.getUTCFullYear();
+      // also handle case where if use UTC date will show tomorrow's date first, so skip that when i is 0
+      if (this.hasAllForDate(dateStr) || (i === 0 && currDate.getDate() !== currDate.getUTCDate())) {
+        continue;
+      }
+      var opt = <option value={dateStr}>{dateStr}</option>;
+      dates.push(opt);
+    }
+    var mealDate = <select name="date" onChange={this.onDateChange}>{dates}</select>;
+
+    var lunchOpt = "";
+    if (!this.hasLunchForDate(this.state.selectedDate)) {
+      lunchOpt = <option value="Lunch">Lunch</option>;
+    }
+    var dinnerOpt = "";
+    if (!this.hasDinnerForDate(this.state.selectedDate)) {
+      dinnerOpt = <option value="Dinner">Dinner</option>;
+    }
+
+    var mealOpt = <select name="meal">
+      {lunchOpt}
+      {dinnerOpt}
+      <option value="Drinks">Drinks</option>
+      </select>;
+    return <div className="mealForm"><form action="saveMeal" method="POST">
+      <ul>
+        <li>Date{mealDate} </li>
+        <li>Meal{mealOpt} </li>
+        <li>Venue<input type="text" name="venue"/></li>
+        <li>Yelp URL<input type="text" name="url"/></li>
+        <li>Food<input type="text" name="food"/></li>
+        <li>Attendees<input type="text" name="who"/></li>
+      </ul>
+      {% csrf_token %} </input>
+      <input type="Submit" value="Submit"/>
+    </form></div>;
+
+  },
+
+  // called when the date is changed
+  onDateChange: function(e) {
+    this.setState({selectedDate: e.target.value});
+  } 
+
+});
+var allMeals = {{ allMeals}}
+var dateSort = function(a, b) {
+  var diff = new Date(b.date) - new Date(a.date);
+  if (diff === 0) { // if date is the same, then sort by meal
+    if (a.meal === "Dinner") {
+      return -1;
+    }
+    return 1;
+  }
+  return diff;
+};
+allMeals.sort(dateSort);
+var allToTry = {{ allToTry}};
+React.render(<MealForm allMeals={allMeals} />, document.getElementById("mealForm"));
+React.render(<ToTryForm />, document.getElementById("toTryForm"));
+
+React.render(<ToTryList allToTry={allToTry} />, document.getElementById("toTryList"));
+React.render(<AllMeals allMeals={allMeals} />, document.getElementById("allMeals"));
+</script>
+</head>
+<body>
+{% csrf_token %} 
+<h1>Food and Meals</h1>
+<div id="mealForm"></div>
+<div id="toTryForm"></div>
+<div id="toTryList"></div>
+<br/><br/>
+<div id="allMeals"></div>
+</body>
+</html>
