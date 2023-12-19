@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from boardgames import hnprojtopstoriesviews, views
+from boardgames import food_views, hnprojtopstoriesviews, views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +25,10 @@ urlpatterns = [
     path('topStories', hnprojtopstoriesviews.home),
     path('cronAddCurrTopItems', hnprojtopstoriesviews.update_top_items),
     path('removeTopStories', hnprojtopstoriesviews.remove_top_items),
+    path('food', food_views.food),
+    path('other', food_views.other),
+    path('saveOther', food_views.addOther),
+    path('saveMeal', food_views.addMeal),
+    path('saveToTry', food_views.addRestaurantToTry),
+
 ]
