@@ -69,6 +69,8 @@ class Command(BaseCommand):
       score = story.get('score')
       if score == 1:
         continue
+      if score < 20:
+        continue
       topStory = HNTopStory(hnStoryId = int(id), story = json.dumps(story, cls=DjangoJSONEncoder))
       topStory.save()
 
@@ -80,7 +82,7 @@ class Command(BaseCommand):
     for prevStory in prevTop:
       if int(json.loads(prevStory.story).get('id')) in uniqueIds:
         continue
-      daysOld = timedelta(days = 21)
+      daysOld = timedelta(days = 10)
       if (prevStory.date + daysOld) < date.today():
         prevStory.delete()
       # also delete stories based on submission date - as sometimes these
