@@ -58,6 +58,104 @@ var NUM_RATINGS_SORT = function(a, b) { return b.numRatings - a.numRatings;};
 var COMPLEXITY_SORT = function(a, b) { return a.complexity - b.complexity;};
 var PLAYTIME_SORT = function(a, b) { return a.playTime - b.playTime;};
 var NUM_PLAYS_SORT = function(a, b) { return b.numPlays - a.numPlays;};
+// Core group members. Jason is also included when present.
+var CORE_GROUP = ['me', 'john', 'mike', 'lucas', 'jp', 'jason'];
+
+// Parses a notes string like "Mike 85, me 74, JP 63" into [{name, score}, ...]
+function parseScores(notes) {
+  if (!notes || notes === 'null') return null;
+  // fix run-together like "JP63" -> "JP 63"
+  var s = notes.replace(/([A-Za-z])(\d)/g, '$1 $2');
+  var parts = s.split(/,\s*/);
+  var results = [];
+  for (var i = 0; i < parts.length; i++) {
+    var m = parts[i].trim().match(/^(\w+(?:\s+\w+)?)\s+(-?\d+)/);
+    if (m) {
+      results.push({ name: m[1].toLowerCase(), score: parseInt(m[2], 10) });
+    }
+  }
+  return results.length > 0 ? results : null;
+}
+
+// Returns { wins, totalRank, count } for "me" across plays that include
+// at least one other core/Jason member (and no non-group members).
+function computeCoreGroupStats(plays) {
+  var wins = 0, totalRank = 0, count = 0;
+  if (!plays) return { wins: wins, totalRank: totalRank, count: count };
+
+  for (var i = 0; i < plays.length; i++) {
+    var scores = parseScores(plays[i].notes);
+    if (!scores) continue;
+
+    // Check all players are in the core group
+    var allCore = true, hasMe = false, hasOther = false;
+    for (var j = 0; j < scores.length; j++) {
+      var n = scores[j].name;
+      if (CORE_GROUP.indexOf(n) === -1) { allCore = false; break; }
+      if (n === 'me') hasMe = true;
+      else hasOther = true;
+    }
+    if (!allCore || !hasMe || !hasOther) continue;
+
+    // Rank by score descending (1 = highest)
+    var sorted = scores.slice().sort(function(a, b) { return b.score - a.score; });
+    var myRank = -1;
+    for (var k = 0; k < sorted.length; k++) {
+      if (sorted[k].name === 'me') { myRank = k + 1; break; }
+    }
+    if (myRank === -1) continue;
+
+    if (myRank === 1) wins++;
+    totalRank += myRank;
+    count++;
+  }
+  return { wins: wins, totalRank: totalRank, count: count };
+}
+
+// Splits plays into first 3/4 and last 1/4 (by date), computes avg rank for each,
+// returns the change (recent minus early; negative = improving).
+function computeRankTrend(plays) {
+  if (!plays) return null;
+
+  // Collect core-group plays with their dates, sorted oldest first
+  var corePlays = [];
+  for (var i = 0; i < plays.length; i++) {
+    var scores = parseScores(plays[i].notes);
+    if (!scores) continue;
+    var allCore = true, hasMe = false, hasOther = false;
+    for (var j = 0; j < scores.length; j++) {
+      var n = scores[j].name;
+      if (CORE_GROUP.indexOf(n) === -1) { allCore = false; break; }
+      if (n === 'me') hasMe = true;
+      else hasOther = true;
+    }
+    if (!allCore || !hasMe || !hasOther) continue;
+    var sorted = scores.slice().sort(function(a, b) { return b.score - a.score; });
+    var myRank = -1;
+    for (var k = 0; k < sorted.length; k++) {
+      if (sorted[k].name === 'me') { myRank = k + 1; break; }
+    }
+    if (myRank === -1) continue;
+    corePlays.push({ date: plays[i].date, rank: myRank, n: scores.length });
+  }
+
+  if (corePlays.length < 4) return null; // not enough data for a meaningful split
+
+  corePlays.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+
+  var splitAt = Math.floor(corePlays.length * 3 / 4);
+  var early = corePlays.slice(0, splitAt);
+  var recent = corePlays.slice(splitAt);
+
+  function avgNormRank(arr) {
+    var sum = 0;
+    for (var i = 0; i < arr.length; i++) sum += arr[i].rank / arr[i].n;
+    return sum / arr.length;
+  }
+
+  var change = avgNormRank(recent) - avgNormRank(early);
+  return change; // negative = improving (rank got lower)
+}
 var LAST_PLAYED_SORT = function(a, b) { 
   if (a.lastPlayed == null || a.lastPlayed == undefined) {
     if (b.lastPlayed != null && b.lastPlayed != undefined) {
@@ -82,6 +180,22 @@ var SingleGame = React.createClass({
       numPlays = <span className="numGamePlays" title={playsText}>{this.props.game.numPlays}</span>;
 
     }
+    var stats = computeCoreGroupStats(this.props.game.plays);
+    var winsCell = "";
+    var rankCell = "";
+    if (stats.count > 0) {
+      var avgRank = (stats.totalRank / stats.count).toFixed(1);
+      winsCell = stats.wins;
+
+      var trend = computeRankTrend(this.props.game.plays);
+      var trendStr = "";
+      if (trend !== null) {
+        var arrow = trend < 0 ? "▲" : "▼";  // ▲ = improving (rank went down)
+        var trendStyle = { color: trend < 0 ? "green" : "red", marginLeft: "4px", fontSize: "11px" };
+        trendStr = <span style={trendStyle}>{arrow}{Math.abs(trend * 100).toFixed(0)}%</span>;
+      }
+      rankCell = <span>{avgRank}{trendStr}</span>;
+    }
     return <tr>
 
         <td>{this.props.game.ranking}</td>
@@ -93,6 +207,8 @@ var SingleGame = React.createClass({
         <td>{this.props.game.minNumPlayers} - {this.props.game.maxNumPlayers}</td>
         <td>{this.props.game.lastPlayed}</td>
         <td>{numPlays}</td>
+        <td>{winsCell}</td>
+        <td>{rankCell}</td>
         <td><RecordPlay key={this.props.game.bggId} gameId={this.props.game.bggId} offset="0" csrf={this.props.csrf}/></td>
       </tr>;
   },
@@ -191,6 +307,8 @@ var Home = React.createClass({
           <th key="numPlayers" ># Players</th>
           <th key="datePlayed" onClick={this.formChangeSortFn(LAST_PLAYED_SORT)} >Last played</th>
           <th key="playCount" onClick={this.formChangeSortFn(NUM_PLAYS_SORT)}># Plays</th>
+          <th key="groupWins">Group Wins</th>
+          <th key="groupRank">Avg Rank (group)</th>
           <th key="empty"></th>
         </tr>
        { gameRows}
