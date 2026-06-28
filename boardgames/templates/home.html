@@ -68,6 +68,23 @@ var GROUP_RANK_SORT = function(a, b) {
   var rankB = statsB.count > 0 ? statsB.totalRank / statsB.count : Infinity;
   return rankA - rankB;
 };
+function filterCorePlays(plays) {
+  if (!plays) return [];
+  var result = [];
+  for (var i = 0; i < plays.length; i++) {
+    var scores = parseScores(plays[i].notes);
+    if (!scores) continue;
+    var allCore = true, hasMe = false, hasOther = false;
+    for (var j = 0; j < scores.length; j++) {
+      var n = scores[j].name;
+      if (CORE_GROUP.indexOf(n) === -1) { allCore = false; break; }
+      if (n === 'me') hasMe = true;
+      else hasOther = true;
+    }
+    if (allCore && hasMe && hasOther) result.push(plays[i]);
+  }
+  return result;
+}
 // Parses a notes string like "Mike 85, me 74, JP 63" into [{name, score}, ...]
 function parseScores(notes) {
   if (!notes || notes === 'null') return null;
@@ -181,10 +198,11 @@ var SingleGame = React.createClass({
   render: function() {
     var url = "https://www.boardgamegeek.com" + this.props.game.bggUrl;
     var aHref = <a href={url}>{this.props.game.name}</a>;
+    var plays = this.props.coreOnly ? filterCorePlays(this.props.game.plays) : this.props.game.plays;
     var numPlays = "";
     if (this.props.game.numPlays > 0) {
-      var playsText = this.formPlaysText();
-      numPlays = <span className="numGamePlays" title={playsText}>{this.props.game.numPlays}</span>;
+      var playsText = this.formPlaysText(plays);
+      numPlays = <span className="numGamePlays" title={playsText}>{plays.length}</span>;
 
     }
     var stats = computeCoreGroupStats(this.props.game.plays);
@@ -219,12 +237,11 @@ var SingleGame = React.createClass({
         <td><RecordPlay key={this.props.game.bggId} gameId={this.props.game.bggId} offset="0" csrf={this.props.csrf}/></td>
       </tr>;
   },
-
   // forms the display/text to display about the plays for agiven game.
-  formPlaysText: function() {
+  formPlaysText: function(plays) {
     var playsDisplay = "";
-    for (var i = 0; i < this.props.game.plays.length; i += 1) {
-      var currPlay = this.props.game.plays[i];
+    for (var i = 0; i < plays.length; i += 1) {
+      var currPlay = plays[i];
       var notes = currPlay["notes"] == "null" ? "" : currPlay["notes"];
       playsDisplay += currPlay["date"] + ": " + notes;
       playsDisplay += "\n";
@@ -283,7 +300,11 @@ var Home = React.createClass({
     return { sortFn: RANK_SORT,
              numPlayersFilterNum: 0,
              games: this.props.allGames.sort(RANK_SORT),
-             maxTime: 0 };
+             maxTime: 0,
+             coreOnly: false};
+  },
+  onCoreOnlyChange: function(e) {
+    this.setState({ coreOnly: e.target.checked });
   },
   render: function() {
       var gameRows = [];
@@ -291,7 +312,7 @@ var Home = React.createClass({
       var sortedGames = this.state.games;
       for (var i = 0; i < sortedGames.length; i++) {
 
-        var game = <SingleGame game={sortedGames[i]} key={sortedGames[i].bggId} csrf={this.props.csrf}/>
+        var game = <SingleGame game={sortedGames[i]} key={sortedGames[i].bggId} csrf={this.props.csrf} coreOnly={this.state.coreOnly} />
         gameRows.push(game);
         if (i > 500) {
           break;
@@ -303,6 +324,8 @@ var Home = React.createClass({
         {this.formTimeFilter()}<br/><br/>
         {this.formComplexityFilter()}<br/><br/>
         {this.formPlayedFilter()}<br/><br/>
+        <div key="coreOnlyFilter">Core group only: <input type="checkbox" key="coreOnly" onChange={this.onCoreOnlyChange}/></div>
+        <br/>
         <table id="gamesTable" key="gamesTable"><tbody>
         <tr key="headerRow" id="gamesHeaderRow">
           <th key="rank" onClick={this.formChangeSortFn(RANK_SORT)} >Ranking</th>
