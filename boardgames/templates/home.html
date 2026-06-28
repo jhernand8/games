@@ -61,7 +61,13 @@ var PLAYTIME_SORT = function(a, b) { return a.playTime - b.playTime;};
 var NUM_PLAYS_SORT = function(a, b) { return b.numPlays - a.numPlays;};
 // Core group members. Jason is also included when present.
 var CORE_GROUP = ['me', 'john', 'mike', 'lucas', 'jp', 'jason'];
-
+var GROUP_RANK_SORT = function(a, b) {
+  var statsA = computeCoreGroupStats(a.plays);
+  var statsB = computeCoreGroupStats(b.plays);
+  var rankA = statsA.count > 0 ? statsA.totalRank / statsA.count : Infinity;
+  var rankB = statsB.count > 0 ? statsB.totalRank / statsB.count : Infinity;
+  return rankA - rankB;
+};
 // Parses a notes string like "Mike 85, me 74, JP 63" into [{name, score}, ...]
 function parseScores(notes) {
   if (!notes || notes === 'null') return null;
@@ -309,7 +315,7 @@ var Home = React.createClass({
           <th key="datePlayed" onClick={this.formChangeSortFn(LAST_PLAYED_SORT)} >Last played</th>
           <th key="playCount" onClick={this.formChangeSortFn(NUM_PLAYS_SORT)}># Plays</th>
           <th key="groupWins">Group Wins</th>
-          <th key="groupRank">Avg Rank (group)</th>
+          <th key="groupRank" onClick={this.formChangeSortFn(GROUP_RANK_SORT)}>Avg Rank (group)</th>
           <th key="empty"></th>
         </tr>
        { gameRows}
